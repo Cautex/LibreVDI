@@ -108,6 +108,57 @@ Eigener Code nur dort, wo der Mehrwert liegt:
                 └─────────────────┘  RDP 3389 nur vom Gateway erreichbar
 ```
 
+## 6a. openUDS gegen den Auftrag (Nachtrag nach Rückfrage, 21.11.2026)
+
+Am Code geprüft (Branch master/v5.0). ✅ vorhanden · ⚠️ teilweise/unklar · ❌ fehlt
+
+| Anforderung | openUDS | Beleg / Anmerkung |
+|---|---|---|
+| Persistente Desktops auf Proxmox | ✅ | `ProxmoxServiceFixed` („Proxmox Fixed Machines“) |
+| Instant Clones / Floating | ✅ | `ProxmoxService` mit Linked Clone und Publications (Master-Version) |
+| Warm-Pool + automatisches Nachfüllen | ✅ | Cache L1 (laufend) / L2 (z. B. suspendiert), Mindest- und Maximalanzahl |
+| Löschen bei Abmeldung, Idle-/Unused-Timeout | ✅ | OS-Manager `on_logout`, `Max.Idle time`, `handle_unused` |
+| Maximaldauer einer Session | ⚠️ | über Kalender-/Zugriffsregeln möglich, Detail nicht verifiziert |
+| Proxmox per API-Token | ✅ | Option „Use API Token“ im Provider |
+| Personalisierung: Rename, AD-Join (Windows/Linux), Zufallspasswort | ✅ | `WinDomainManager`, `LinuxADManager`, `*RandomPasswordManager` |
+| Agent Windows + Linux | ✅ | `uds-actor` in Rust, Builds für Windows/Linux/macOS |
+| Client Windows (+Linux/macOS) | ✅ | `uds-client` (Rust-Launcher) |
+| Web-Client (HTML5) | ✅ | Transport HTML5-RDP/SSH über Guacamole |
+| Tunnel/Gateway | ✅ | `uds-tunnel-server` (Rust, mit Dockerfile) |
+| LDAP/AD, SAML, OAuth2, Radius, X.509 | ✅ | `auths/` |
+| MFA (TOTP, E-Mail, SMS, Radius) | ✅ | `mfas/` |
+| Admin-UI | ✅ | `openuds-gui` (Angular, BSD-3) |
+| REST-API mit OpenAPI | ✅ | `doc/api/rest.yaml`, Generator `genapi` |
+| Audit-Log | ⚠️ | Logs + `immutable_log`-Modell vorhanden, Umfang nicht bewertet |
+| Deutsche Oberfläche | ✅ | Locale `de` vorhanden |
+| CI/Tests | ✅ | GitHub Actions (Tests, CodeQL), ~520 Testdateien |
+| GPU (vGPU auf Proxmox) | ⚠️ | Proxmox-Service prüft vGPU-/mdev-Verfügbarkeit. GPU-taugliches Streaming (Sunshine/Selkies) fehlt |
+| **Broker als Docker-Container** | ❌ | offizieller Weg: Ubuntu + venv + MySQL (Quickstart „für Lab/PoC“). Docker nur für den Tunnel |
+| **Postgres** | ⚠️ | Django-seitig unterstützt, Code kennt `postgresql`. Doku und Standard sind MySQL → testen |
+| **Mandantenfähigkeit** | ❌ | kein Organisations-/Mandanten-Modell |
+| **Prometheus-Metriken** | ❌ | nur eigene Statistik-Zähler |
+| Einfacher Liveness-/Health-Endpoint | ⚠️ | `/system/checks` (Admin-Selbsttest), kein schlanker Healthcheck gefunden |
+| Saubere Releases | ⚠️ | stabil ist v4.0. v5.0 (Rust-Agent/-Client) ist Entwicklungsstand ohne Release-Tags |
+
+**Nur in der kommerziellen Enterprise-Version** (abgeleitet aus der mitgelieferten API-Doku, nicht im offenen Code): eigener AD-Authenticator, Azure AD/Entra ID, eDirectory, RDS/RemoteApp-Anwendungsbereitstellung, VMware/Hyper-V/Nutanix/AWS/Azure/GCP, NICE DCV, PCoIP, NoMachine. Für Proxmox-VDI ist davon nur Entra ID ggf. relevant. AD funktioniert auch über die offenen LDAP-Module.
+
+**Community:** 105 Issues insgesamt, nur 4 neue in den letzten 12 Monaten. PRs kommen fast nur vom Hersteller. Das Projekt wird also professionell, aber praktisch von einer Firma entwickelt (Open-Core-Modell).
+
+### 6b. Optionen neu bewertet
+
+| | **A1 – harter Fork** | **A2 – Distribution auf openUDS (upstream-first)** | **C – Hybrid/Neubau** |
+|---|---|---|---|
+| Idee | openUDS kopieren, umbenennen, eigenständig weiterentwickeln | openUDS fast unverändert nutzen. LibreVDI liefert Docker-Packaging, Proxmox-Automatisierung, Doku (DE/EN) und Zusatzmodule. Änderungen am Kern gehen als PR an Upstream | eigener Broker und Agent, offene Bausteine |
+| Weg zum MVP | sofort | sehr kurz (Packaging + Doku) | lang (alles von Grund auf) |
+| Wartung | ❌ ~150k LOC allein, Upstream läuft sehr schnell → hartes Abdriften | ✅ Kernwartung macht der Hersteller | ⚠️ alles selbst, aber kleiner Code |
+| Eigener Mehrwert | gering | mittel (Betrieb, Proxmox-Fokus, Zusatzfunktionen) | hoch |
+| Mandantenfähigkeit | tiefer Umbau im fremden Datenmodell | **Instanz pro Mandant** (eigener Broker-Stack + DB, eigener Proxmox-Pool und API-Token) + später eine Verwaltungsschicht über die REST-APIs | sauber im eigenen Datenmodell |
+| Risiko | Abdriften, Rebranding | Abhängigkeit vom Hersteller (Open Core). BSD-Code bleibt aber nutzbar, Fallback zu A1 jederzeit möglich | Aufwand, ein Ein-Personen-Projekt |
+| Sprachen | Python, Rust, Angular | Python (Kern-PRs), Rust (Agent/Client), eigene Tools in Python | Go (+ Svelte) |
+| Lizenz | BSD-3 (vorgegeben) | BSD-3 (passend zu Upstream) | frei (Apache-2.0) |
+
+**Empfehlung nach Rückfrage: A2.** Sie nutzt die Reife von openUDS und hält den eigenen Wartungsaufwand klein. A1 bleibt trotzdem als Ausweg offen. C lohnt sich nur, wenn das eigene Produkt bzw. das Lernziel im Vordergrund steht.
+
 ## 7. Was ich nicht geprüft habe (ehrlich)
 
 - Ich habe keine der Lösungen tatsächlich installiert und betrieben. Die Bewertung beruht auf Code, Struktur und Git-Historie.
