@@ -11,7 +11,7 @@ Windows-11-Desktop per RDP). Reihenfolge innerhalb einer Phase = vorgeschlagene 
 | 2 | **Branding** | „LibreVDI“ statt „UDS“ überall: Portal, Admin, Download-Texte, Launcher-Fenster (About, Server-Freigabe, Fortschritt), Installer, Dienstname des Agents; eigenes Logo | Logo + Überschreiben statischer Dateien und Übersetzungen im Image; Client/Agent: Patch-Dateien auf Upstream (bis Upstream Branding konfigurierbar macht) |
 | 3 | **Tunnel als Option pro Pool** | wie Horizon „Tunnel ja/nein“: Clients verbinden über LibreVDI statt direkt zur VM | Tunnel-Server als Compose-Dienst (Profil), automatische Registrierung; pro Pool Transport „RDP direkt“ und/oder „RDP getunnelt“, optional per Netzwerk (intern direkt, extern Tunnel) |
 | 4 | **Signierte RDP-Dateien** | keine Warnung „Unbekannter Herausgeber“ | Option *Sign RDP file* im Transport + Zertifikat aus eigener CA oder öffentlich; GPO-Vorlage „vertrauenswürdige RDP-Herausgeber“ |
-| 5 | **Releases** | fertige Downloads statt Selbstbau: Docker-Image (GHCR) + Windows-Installer als GitHub-Release, Lizenzhinweise für mitgelieferte Bibliotheken (FreeRDP, FFmpeg, OpenSSL …) | Release-Workflow bei Git-Tag, `THIRD_PARTY.md` um Windows-Pakete ergänzen |
+| 5 | **Releases** | fertige Downloads statt Selbstbau: Docker-Image (GHCR) + Windows-Installer als GitHub-Release, Lizenzhinweise für mitgelieferte Bibliotheken (FreeRDP, FFmpeg, OpenSSL …) | ✅ umgesetzt: `release.yml` (Tag → Draft-Release + GHCR), Installer im Image gebündelt, Lizenzhinweise automatisch ([release.md](release.md)); offen: Code-Signing der Installer |
 
 ## Phase 3 – Instant Clones / Floating-Pools mit Windows
 

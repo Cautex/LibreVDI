@@ -8,6 +8,7 @@
 #   - health endpoints are NOT reachable from outside
 #   - REST login with the super user works, a wrong password is rejected
 #   - the task manager container is healthy
+#   - with SMOKE_EXPECT_DOWNLOADS=1: client and agent installers are published (release images)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -70,6 +71,17 @@ if [[ "${LIBREVDI_PROXY_CONFIG:-Caddyfile}" == "Caddyfile" && "${LIBREVDI_TLS:-i
   expect_status /ca.crt 200  # root CA download for clients/VMs
 fi
 expect_status /uds/res/librevdi/rdp-signing.crt 200  # RDP signing certificate for clients
+if [[ "${SMOKE_EXPECT_DOWNLOADS:-0}" == "1" ]]; then
+  expect_status /uds/res/clients/UDSLauncherInstaller-5.0.0.exe 200  # portal "Launcher" download
+  for f in UDSActorSetup-5.0.0.exe UDSActorUnmanagedSetup-5.0.0.exe; do  # admin UI agent downloads
+    if docker compose exec -T broker-web test -s "/app/uds/osmanagers/WindowsOsManager/files/$f"; then
+      echo "ok    agent installer $f published"
+    else
+      echo "FAIL  agent installer $f missing"
+      fail=1
+    fi
+  done
+fi
 expect_status /healthz 404
 expect_status /readyz 404
 

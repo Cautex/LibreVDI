@@ -5,6 +5,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 
 ## [Unreleased]
 
+### Added (Phase 2b)
+- Service type **"Proxmox Persistent Desktops (LibreVDI)"** (broker plugin): fixed user ↔ VM
+  assignment that survives logoff (upstream "Fixed Machines" releases it), ADR-0006.
+- **LibreVDI branding** everywhere: own logo, portal and admin texts, German UI (upstream ships no
+  compiled translations), client and agent windows, Windows file properties, installers. Upstream
+  copyright notices stay visible (BSD-3-Clause).
+- **Tunnel** as optional compose profile (`--profile tunnel`), automatic registration; per pool via
+  transports "RDP direct" / "RDP tunneled", optionally per network (`docs/tunnel.md`).
+- **Signed RDP files**: signing certificate generated on first start or own certificate
+  (`LIBREVDI_RDP_SIGN_CERT/KEY`), public certificate and SHA-1 thumbprint for GPO
+  (`docs/rdp-signing.md`).
+- **Releases** (`.github/workflows/release.yml`, ADR-0007): tag `v<semver>` builds the Windows
+  installers and the broker/tunnel images, tests and pushes them to GHCR and creates a *draft*
+  GitHub release with SHA256SUMS. Release images contain the matching Windows installers.
+- Third-party license notices (`THIRD-PARTY-NOTICES.txt`) generated during the build and shipped
+  in both installers; Windows file version set from the release version.
+
 ### Added (Phase 2)
 - Windows builds in GitHub Actions: LibreVDI Agent (OpenUDS actor, `unmanaged` and `managed`
   installers) and LibreVDI Client (OpenUDS launcher with FreeRDP, FFmpeg, OpenSSL runtime DLLs,

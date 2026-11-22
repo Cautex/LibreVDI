@@ -1,0 +1,218 @@
+name: Release
+
+# Builds a LibreVDI release from a version tag (v0.2.0, v0.2.0-rc.1):
+#   1. Windows installers (agent managed/unmanaged, client) with the release version
+#   2. broker image (installers bundled) and tunnel image, smoke-tested, pushed to GHCR
+#   3. a DRAFT GitHub release with installers, license notices and SHA256SUMS
+#
+# Nothing becomes public by itself: the release stays a draft until a maintainer publishes it,
+# and GHCR packages are private until their visibility is changed (see docs/release.md).
+#
+# Without a tag (manual start, or a change to this file on a branch) the workflow is a dry run:
+# everything is built and tested, nothing is pushed or released.
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+    branches: ["claude/**"]
+    paths: [".github/workflows/release.yml"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for the dry run (nothing is published)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      publish: ${{ steps.v.outputs.publish }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+      registry: ${{ steps.v.outputs.registry }}
+    steps:
+      - id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            publish=true
+          else
+            version="${INPUT_VERSION:-0.0.0-dryrun.${GITHUB_RUN_NUMBER}}"
+            publish=false
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::invalid version '$version' (expected e.g. 0.2.0 or 0.2.0-rc.1)"
+            exit 1
+          fi
+          prerelease=false
+          [[ "$version" == *-* ]] && prerelease=true
+          {
+            echo "version=$version"
+            echo "publish=$publish"
+            echo "prerelease=$prerelease"
+            echo "registry=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  windows:
+    needs: meta
+    uses: ./.github/workflows/windows-builds.yml
+    with:
+      version: ${{ needs.meta.outputs.version }}
+
+  images:
+    needs: [meta, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      REGISTRY: ${{ needs.meta.outputs.registry }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: librevdi-*-windows-x64
+          path: windows
+          merge-multiple: true
+      - name: Bundle installers into the broker image
+        run: |
+          cp windows/LibreVDI-*-Setup-"$VERSION".exe downloads/
+          ls -l downloads
+          test "$(ls downloads/LibreVDI-*-Setup-"$VERSION".exe | wc -l)" -eq 3
+      - uses: docker/setup-buildx-action@v3
+      - name: Build broker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/broker/Dockerfile
+          tags: ${{ env.REGISTRY }}/librevdi-broker:${{ env.VERSION }}
+          build-args: |
+            LIBREVDI_VERSION=${{ env.VERSION }}
+            LIBREVDI_SOURCE=${{ github.server_url }}/${{ github.repository }}
+          load: true
+          cache-from: type=gha
+      - name: Build tunnel image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/tunnel/Dockerfile
+          tags: ${{ env.REGISTRY }}/librevdi-tunnel:${{ env.VERSION }}
+          build-args: |
+            LIBREVDI_VERSION=${{ env.VERSION }}
+            LIBREVDI_SOURCE=${{ github.server_url }}/${{ github.repository }}
+          load: true
+          cache-from: type=gha,scope=tunnel
+      - name: Smoke test (release images, bundled installers, no ./downloads mount content)
+        run: |
+          rm -f downloads/*.exe
+          cp .env.example .env
+          sed -i "s/CHANGE_ME_DB_PASSWORD/$(openssl rand -hex 16)/; s/CHANGE_ME_ADMIN_PASSWORD/$(openssl rand -hex 12)/" .env
+          {
+            echo "LIBREVDI_BROKER_IMAGE=$REGISTRY/librevdi-broker:$VERSION"
+            echo "LIBREVDI_TUNNEL_IMAGE=$REGISTRY/librevdi-tunnel:$VERSION"
+            echo "LIBREVDI_HTTP_PORT=8080"
+            echo "LIBREVDI_HTTPS_PORT=8443"
+          } >> .env
+          docker compose --profile tunnel up -d --no-build
+          SMOKE_EXPECT_DOWNLOADS=1 tests/smoke.sh
+          tests/tunnel.sh
+          docker compose logs broker-web | grep "LibreVDI $VERSION"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --profile tunnel logs --no-color --tail=200
+      - name: Tear down
+        if: always()
+        run: docker compose --profile tunnel down -v
+      - name: Push images to GHCR
+        if: needs.meta.outputs.publish == 'true'
+        env:
+          PRERELEASE: ${{ needs.meta.outputs.prerelease }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for image in librevdi-broker librevdi-tunnel; do
+            docker push "$REGISTRY/$image:$VERSION"
+            if [[ "$PRERELEASE" == "false" ]]; then
+              docker tag "$REGISTRY/$image:$VERSION" "$REGISTRY/$image:latest"
+              docker push "$REGISTRY/$image:latest"
+            fi
+          done
+
+  release:
+    needs: [meta, windows, images]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      REGISTRY: ${{ needs.meta.outputs.registry }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: librevdi-*-windows-x64
+          path: windows
+          merge-multiple: true
+      - name: Assets and checksums
+        run: |
+          mkdir assets
+          cp windows/LibreVDI-*-Setup-"$VERSION".exe windows/THIRD-PARTY-NOTICES-*.txt assets/
+          cp THIRD_PARTY.md assets/THIRD_PARTY.md
+          (cd assets && sha256sum -- * > SHA256SUMS)
+          cat assets/SHA256SUMS
+      - name: Release notes
+        run: |
+          # section "## [<version>]" of CHANGELOG.md, if present
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { on = 1; next }
+            on && /^## \[/ { exit }
+            on { print }' CHANGELOG.md > notes.md
+          [[ -s notes.md ]] || echo "See CHANGELOG.md." > notes.md
+          cat >> notes.md <<EOF
+
+          ## Installation
+
+          Docker images (amd64):
+
+          \`\`\`
+          LIBREVDI_BROKER_IMAGE=$REGISTRY/librevdi-broker:$VERSION
+          LIBREVDI_TUNNEL_IMAGE=$REGISTRY/librevdi-tunnel:$VERSION
+          \`\`\`
+
+          The broker image already contains the Windows installers of this release (portal
+          "Launcher" for users, agent downloads in the admin UI). See docs/installation.md.
+
+          LibreVDI is based on OpenUDS (BSD-3-Clause, © Virtual Cable S.L.) and is not affiliated
+          with Virtual Cable S.L. Third-party licenses: THIRD_PARTY.md and THIRD-PARTY-NOTICES-*.txt.
+          EOF
+          cat notes.md
+      - name: Dry run – keep assets as workflow artifact
+        if: needs.meta.outputs.publish != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dryrun-${{ env.VERSION }}
+          path: |
+            assets/*
+            notes.md
+          retention-days: 7
+      - name: Create draft release
+        if: needs.meta.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ needs.meta.outputs.prerelease }}
+        run: |
+          flags=(--draft --verify-tag --title "LibreVDI $VERSION" --notes-file notes.md)
+          [[ "$PRERELEASE" == "true" ]] && flags+=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" "${flags[@]}" assets/*

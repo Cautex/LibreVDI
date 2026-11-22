@@ -11,3 +11,4 @@ nicht nachträglich umgeschrieben, sondern durch einen neuen ADR ersetzt („Ers
 | [0004](0004-mandantenfaehigkeit.md) | Mandantenfähigkeit: eine Instanz pro Mandant, später | angenommen |
 | [0005](0005-sprachen.md) | Programmiersprachen | angenommen |
 | [0006](0006-persistente-zuordnung-plugin.md) | Persistente Zuordnung über ein LibreVDI-Plugin | angenommen |
+| [0007](0007-releases.md) | Releases als Entwurf mit GHCR-Images und gebündelten Installern | angenommen |

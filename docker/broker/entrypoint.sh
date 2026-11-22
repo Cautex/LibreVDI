@@ -50,6 +50,7 @@ case "$cmd" in
     log "init done"
     ;;
   web)
+    echo "librevdi: LibreVDI ${LIBREVDI_VERSION:-dev} (broker OpenUDS 5.0)"
     python -m librevdi_ext.downloads
     python -m librevdi_ext.rdp_signing publish
     exec daphne -b 0.0.0.0 -p "${LIBREVDI_PORT:-8000}" --proxy-headers \

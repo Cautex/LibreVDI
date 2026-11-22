@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Downloads the Windows installers (agent + client) of the latest successful CI run
-# into ./downloads, so LibreVDI can offer them in the portal / admin UI.
+# Downloads the Windows installers (agent + client) into ./downloads, so LibreVDI can offer them
+# in the portal / admin UI. Release images already contain the installers of their release;
+# this is for newer builds or self-built images.
 #
-#   GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh
+#   RELEASE=v0.2.0 tools/fetch-windows-builds.sh      # assets of a published release, no token
+#   GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh # latest successful CI run
 #
 # GITHUB_TOKEN: GitHub token that may read Actions artifacts of the repository
 #               (fine-grained token: repository access to this repo, permission "Actions: read").
@@ -12,9 +14,27 @@ set -euo pipefail
 
 REPO="${REPO:-Cautex/LibreVDI}"
 WORKFLOW="windows-builds.yml"
-TOKEN="${GITHUB_TOKEN:?set GITHUB_TOKEN (needs Actions: read)}"
 DEST="$(cd "$(dirname "$0")/.." && pwd)/downloads"
 API="https://api.github.com/repos/${REPO}"
+
+if [[ -n "${RELEASE:-}" ]]; then
+  mkdir -p "$DEST"
+  echo "== release ${RELEASE}"
+  curl -fsSL "${API}/releases/tags/${RELEASE}" |
+    python3 -c 'import json,sys
+for a in json.load(sys.stdin)["assets"]:
+    if a["name"].startswith("LibreVDI-") and a["name"].endswith(".exe") or a["name"] == "SHA256SUMS":
+        print(a["name"], a["browser_download_url"])' |
+    while read -r name url; do
+      curl -fsSL -o "${DEST}/${name}" "$url"
+      echo "   ${name}"
+    done
+  (cd "$DEST" && grep 'LibreVDI-.*\.exe$' SHA256SUMS | sha256sum -c -) && rm -f "${DEST}/SHA256SUMS"
+  echo "== saved to ${DEST}. Activate with: docker compose restart broker-web"
+  exit 0
+fi
+
+TOKEN="${GITHUB_TOKEN:?set GITHUB_TOKEN (needs Actions: read), or RELEASE=<tag> for a published release}"
 
 gh_api() {
   curl -fsSL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" \

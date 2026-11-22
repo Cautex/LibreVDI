@@ -34,10 +34,14 @@ InstallDir "$PROGRAMFILES64\LibreVDI\Agent"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 
-VIProductVersion "0.0.0.0"
+!ifndef VIVERSION
+  !define VIVERSION "0.0.0.0"  ; numeric a.b.c.d for the Windows file properties
+!endif
+VIProductVersion "${VIVERSION}"
 VIAddVersionKey "ProductName" "${PRODUCT}"
 VIAddVersionKey "FileDescription" "${PRODUCT} installer (${VARIANT})"
 VIAddVersionKey "ProductVersion" "${VERSION}"
+VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "LegalCopyright" "LibreVDI contributors; based on OpenUDS (BSD-3-Clause)"
 
 !define MUI_ICON "..\..\branding\logo.ico"
@@ -72,6 +76,10 @@ Section "Agent"
     File "${SRCDIR}\udsactor-config.exe"
   !endif
   File /oname=LICENSE-OpenUDS.txt "..\..\upstream\uds-actor\LICENSE"
+  !ifdef NOTICES
+    ; licenses of bundled third-party components (packaging/windows/collect_licenses.py)
+    File /oname=THIRD-PARTY-NOTICES.txt "${NOTICES}"
+  !endif
 
   ; Windows service (name defined by upstream binary)
   ExecWait '"$INSTDIR\udsactor-service.exe" --install' $0

@@ -28,10 +28,14 @@ InstallDir "$PROGRAMFILES64\LibreVDI\Client"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 
-VIProductVersion "0.0.0.0"
+!ifndef VIVERSION
+  !define VIVERSION "0.0.0.0"  ; numeric a.b.c.d for the Windows file properties
+!endif
+VIProductVersion "${VIVERSION}"
 VIAddVersionKey "ProductName" "${PRODUCT}"
 VIAddVersionKey "FileDescription" "${PRODUCT} installer"
 VIAddVersionKey "ProductVersion" "${VERSION}"
+VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "LegalCopyright" "LibreVDI contributors; based on OpenUDS (BSD-3-Clause)"
 
 !define MUI_ICON "..\..\branding\logo.ico"
@@ -60,6 +64,10 @@ Section "Client"
   File "${SRCDIR}\launcher.exe"
   File /nonfatal "${SRCDIR}\*.dll"
   File /oname=LICENSE-OpenUDS.txt "..\..\upstream\uds-client\LICENSE"
+  !ifdef NOTICES
+    ; licenses of bundled third-party components (packaging/windows/collect_licenses.py)
+    File /oname=THIRD-PARTY-NOTICES.txt "${NOTICES}"
+  !endif
 
   ; URL scheme handler: the portal hands connections to udssv2://host/ticket/scrambler
   WriteRegStr HKLM "Software\Classes\${SCHEME}" "" "URL:LibreVDI Protocol"

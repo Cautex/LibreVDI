@@ -22,9 +22,12 @@ RUN --mount=type=secret,id=extra_ca,required=false \
     cargo build --release --locked --bin tunnel-server'
 
 FROM ${BASE_IMAGE} AS runtime
+ARG LIBREVDI_VERSION=dev
+ARG LIBREVDI_SOURCE=https://github.com/Cautex/LibreVDI
 LABEL org.opencontainers.image.title="LibreVDI Tunnel" \
       org.opencontainers.image.description="LibreVDI tunnel server (based on OpenUDS 5.0)" \
-      org.opencontainers.image.source="https://github.com/Cautex/LibreVDI" \
+      org.opencontainers.image.source="${LIBREVDI_SOURCE}" \
+      org.opencontainers.image.version="${LIBREVDI_VERSION}" \
       org.opencontainers.image.licenses="BSD-3-Clause"
 COPY docker/broker/scripts/with-extra-ca.sh /usr/local/bin/with-extra-ca
 RUN --mount=type=secret,id=extra_ca,required=false \

@@ -1,0 +1,6 @@
+Microsoft Visual C++ Runtime (vcruntime140*.dll, msvcp140*.dll, concrt140.dll, vccorlib140.dll)
+
+These files are the "Distributable Code" of Microsoft Visual Studio (Visual C++ Redistributable
+files). They are shipped unmodified, next to the program that uses them ("app-local"), as permitted
+by the Microsoft Software License Terms for Visual Studio. Copyright (c) Microsoft Corporation.
+They are not covered by the LibreVDI or OpenUDS licenses.

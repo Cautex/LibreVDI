@@ -52,9 +52,14 @@ RUN --mount=type=secret,id=extra_ca,required=false \
 ############################
 FROM ${BASE_IMAGE} AS runtime
 
+# Set by the release workflow; local builds report "dev"
+ARG LIBREVDI_VERSION=dev
+ARG LIBREVDI_SOURCE=https://github.com/Cautex/LibreVDI
+
 LABEL org.opencontainers.image.title="LibreVDI Broker" \
-      org.opencontainers.image.description="LibreVDI connection broker (based on openUDS 5.0)" \
-      org.opencontainers.image.source="https://github.com/Cautex/LibreVDI" \
+      org.opencontainers.image.description="LibreVDI connection broker (based on OpenUDS 5.0)" \
+      org.opencontainers.image.source="${LIBREVDI_SOURCE}" \
+      org.opencontainers.image.version="${LIBREVDI_VERSION}" \
       org.opencontainers.image.licenses="BSD-3-Clause"
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -77,7 +82,8 @@ ENV VIRTUAL_ENV=/opt/venv \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=server.settings \
-    UDS_DATA_DIR=/var/lib/uds
+    UDS_DATA_DIR=/var/lib/uds \
+    LIBREVDI_VERSION=${LIBREVDI_VERSION}
 
 COPY --from=build /opt/venv /opt/venv
 
@@ -92,6 +98,9 @@ COPY docker/broker/plugins/librevdi /app/uds/plugins/librevdi
 COPY branding/logo-*.png branding/logo.ico /opt/librevdi/branding/
 COPY docker/broker/branding/apply_branding.py /opt/librevdi/apply_branding.py
 COPY docker/broker/entrypoint.sh /usr/local/bin/librevdi-entrypoint
+# Windows installers bundled into release images (CI puts them into downloads/ before the build;
+# local builds bundle whatever was fetched there). ./downloads mounted on the host takes precedence.
+COPY downloads/ /opt/librevdi/bundled-downloads/
 
 RUN useradd --system --uid 10001 --home-dir /var/lib/uds --shell /usr/sbin/nologin uds \
  && mkdir -p /var/lib/uds /app/log \

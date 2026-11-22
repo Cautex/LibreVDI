@@ -1,7 +1,9 @@
 """Publishes LibreVDI Windows installers through the upstream download mechanisms.
 
 Files are taken from ``LIBREVDI_DOWNLOADS_DIR`` (default ``/opt/librevdi/downloads``, mounted from
-``./downloads`` on the Docker host) and copied to the paths the OpenUDS broker serves:
+``./downloads`` on the Docker host) and, for every installer not found there, from the installers
+bundled into release images (``/opt/librevdi/bundled-downloads``). They are copied to the paths the
+OpenUDS broker serves:
 
 * client  -> static ``clients/UDSLauncherInstaller-<version>.exe``
              (portal button "Launcher" / ``/uds/page/launcher-download``, all users)
@@ -44,10 +46,16 @@ def newest(pattern: str) -> str | None:
     return max(files, key=os.path.getmtime) if files else None
 
 
-def publish(source_dir: str, app_dir: str, version: str) -> list[tuple[str, str]]:
+BUNDLED_DIR = "/opt/librevdi/bundled-downloads"
+
+
+def publish(source_dirs: str | list[str], app_dir: str, version: str) -> list[tuple[str, str]]:
+    """Copies each installer from the first directory that has one (earlier directories win)."""
+    if isinstance(source_dirs, str):
+        source_dirs = [source_dirs]
     published = []
     for source_glob, target_tpl in TARGETS:
-        src = newest(os.path.join(source_dir, source_glob))
+        src = next((f for d in source_dirs if (f := newest(os.path.join(d, source_glob)))), None)
         if not src:
             continue
         dst = os.path.join(app_dir, target_tpl.format(version=version))
@@ -58,18 +66,22 @@ def publish(source_dir: str, app_dir: str, version: str) -> list[tuple[str, str]
 
 
 def main() -> int:
-    source_dir = os.environ.get("LIBREVDI_DOWNLOADS_DIR", "/opt/librevdi/downloads")
-    if not os.path.isdir(source_dir):
+    source_dirs = [
+        d
+        for d in (os.environ.get("LIBREVDI_DOWNLOADS_DIR", "/opt/librevdi/downloads"), BUNDLED_DIR)
+        if os.path.isdir(d)
+    ]
+    if not source_dirs:
         return 0
     try:
-        published = publish(source_dir, APP, upstream_version())
+        published = publish(source_dirs, APP, upstream_version())
     except OSError as e:  # never block the web server because of downloads
         print(f"librevdi: WARNING: could not publish installers: {e}", file=sys.stderr)
         return 0
     for name, dst in published:
         print(f"librevdi: published {name} -> {dst}")
     if not published:
-        print(f"librevdi: no installers found in {source_dir} (see downloads/README.md)")
+        print(f"librevdi: no installers found in {', '.join(source_dirs)} (see downloads/README.md)")
     return 0
 
 

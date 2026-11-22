@@ -1,7 +1,8 @@
 name: Windows builds (agent + client)
 
-# Builds the upstream OpenUDS 5.0 actor (agent) and launcher (client) for Windows.
-# Phase 2, step 1: plain release binaries as CI artifacts. Installers follow in step 2.
+# Builds the upstream OpenUDS 5.0 actor (agent) and launcher (client) for Windows, branded as
+# LibreVDI, and packages them as NSIS installers with third-party license notices.
+# Also called by release.yml with the release version.
 
 on:
   push:
@@ -13,6 +14,13 @@ on:
       - "branding/**"
       - ".github/workflows/windows-builds.yml"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Installer version (default: 0.1.0-dev.<run number>)"
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -29,6 +37,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Version
+        shell: pwsh
+        run: packaging\windows\set-version.ps1 "${{ inputs.version }}" ${{ github.run_number }}
       - name: Rust toolchain
         run: |
           rustup toolchain install stable --profile minimal
@@ -57,6 +68,12 @@ jobs:
       - name: Check DLL dependencies (must only need Windows system DLLs)
         shell: pwsh
         run: packaging\windows\check-dependencies.ps1 out
+      - name: Third-party license notices
+        run: >-
+          python packaging/windows/collect_licenses.py --title "LibreVDI Agent"
+          --cargo-dir upstream/uds-actor
+          --fallback-text BSD-3-Clause=upstream/uds-actor/LICENSE
+          --out notices/THIRD-PARTY-NOTICES.txt --summary notices/third-party-agent.md
       - name: Build installers (NSIS)
         shell: pwsh
         run: |
@@ -64,17 +81,23 @@ jobs:
             choco install nsis -y --no-progress
             $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
           }
-          $version = "0.1.0-dev.${{ github.run_number }}"
+          $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
           foreach ($variant in @("unmanaged", "managed")) {
-            makensis /V2 /DVERSION=$version /DVARIANT=$variant packaging\windows\agent.nsi
+            makensis /V2 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
+              /DVARIANT=$variant "/DNOTICES=$notices" packaging\windows\agent.nsi
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           Move-Item packaging\windows\LibreVDI-Agent-*-Setup-*.exe out\
+          Copy-Item notices\THIRD-PARTY-NOTICES.txt out\THIRD-PARTY-NOTICES-Agent.txt
+          Copy-Item notices\third-party-agent.md out\
           Get-ChildItem out | Format-Table Name, Length
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-agent-windows-x64
-          path: out/*.exe
+          path: |
+            out/*.exe
+            out/*.txt
+            out/*.md
           retention-days: 14
 
   client:
@@ -93,6 +116,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Version
+        shell: pwsh
+        run: packaging\windows\set-version.ps1 "${{ inputs.version }}" ${{ github.run_number }}
       - name: Rust toolchain
         run: |
           rustup toolchain install stable --profile minimal
@@ -143,6 +169,21 @@ jobs:
       - name: Check DLL dependencies (everything not shipped must be a Windows system DLL)
         shell: pwsh
         run: packaging\windows\check-dependencies.ps1 out
+      - name: Third-party license notices
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force notices | Out-Null
+          # FreeRDP is built from source (cached); its license text comes from the same tag
+          curl.exe -fsSL -o notices\FreeRDP-LICENSE.txt "https://raw.githubusercontent.com/FreeRDP/FreeRDP/$env:FREERDP_VERSION/LICENSE"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python packaging/windows/collect_licenses.py --title "LibreVDI Client" `
+            --cargo-dir upstream/uds-client --root launcher `
+            --fallback-text BSD-3-Clause=upstream/uds-client/LICENSE `
+            --vcpkg-installed "$env:VCPKG_ROOT\installed" --vcpkg-port "*" `
+            --extra "FreeRDP $env:FREERDP_VERSION|Apache-2.0|notices\FreeRDP-LICENSE.txt" `
+            --extra "Microsoft Visual C++ Runtime|Microsoft Visual Studio Distributable Code|packaging\windows\notices\msvc-runtime.txt" `
+            --out notices\THIRD-PARTY-NOTICES.txt --summary notices\third-party-client.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build installer (NSIS)
         shell: pwsh
         run: |
@@ -150,9 +191,13 @@ jobs:
             choco install nsis -y --no-progress
             $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
           }
-          makensis /V2 /DVERSION=0.1.0-dev.${{ github.run_number }} packaging\windows\client.nsi
+          $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
+          makensis /V2 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
+            "/DNOTICES=$notices" packaging\windows\client.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Move-Item packaging\windows\LibreVDI-Client-Setup-*.exe out\
+          Copy-Item notices\THIRD-PARTY-NOTICES.txt out\THIRD-PARTY-NOTICES-Client.txt
+          Copy-Item notices\third-party-client.md out\
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-client-windows-x64

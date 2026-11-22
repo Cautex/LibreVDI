@@ -19,10 +19,36 @@ notices and license texts are kept unchanged in the respective sources.
 The OpenUDS web UI ships pre-built JavaScript bundles; their own third-party notices are in
 `upstream/broker/src/uds/static/*/3rdpartylicenses.txt`.
 
+## Windows installers (LibreVDI Agent, LibreVDI Client)
+
+Each installer contains `THIRD-PARTY-NOTICES.txt` with the complete list and license texts of the
+bundled components; it is generated during the build by `packaging/windows/collect_licenses.py`
+and also attached to every GitHub release (`THIRD-PARTY-NOTICES-Agent.txt`, `-Client.txt`).
+
+| Component | License | Shipped as | Installer |
+|---|---|---|---|
+| Rust crates linked into the binaries (about 340 agent / 500 client) | predominantly MIT / Apache-2.0, also BSD, ISC, Zlib, Unicode-3.0, BSL-1.0, OFL-1.1 (fonts) | statically linked | both |
+| FreeRDP 3.x | Apache-2.0 | DLLs | Client |
+| FFmpeg (vcpkg default features, no GPL components) | LGPL-2.1-or-later | DLLs (replaceable) | Client |
+| libusb | LGPL-2.1-or-later | DLL (replaceable) | Client |
+| OpenSSL 3 | Apache-2.0 | DLLs | Client |
+| zlib | Zlib | DLL | Client |
+| cJSON | MIT | DLL | Client |
+| libvpx | BSD-3-Clause | statically linked | Client |
+| Microsoft Visual C++ Runtime | Microsoft Visual Studio Distributable Code | DLLs (app-local, unmodified) | Client |
+
+Crates offered under a choice of licenses (e.g. `Apache-2.0 OR GPL-2.0-only`) are used under the
+permissive option. **LGPL libraries:** they are dynamically linked and can be replaced by the user.
+Their unmodified source code is the upstream release referenced by the vcpkg port version listed
+in `THIRD-PARTY-NOTICES-Client.txt`; on request (GitHub issue in this repository) we provide the
+exact source archives used for a release, for at least three years after that release.
+
 ## Container images used by `compose.yaml`
 
 | Image | Software license |
 |---|---|
+| `ghcr.io/<owner>/librevdi-broker` (release image) | this file; also contains the Windows installers listed above |
+| `ghcr.io/<owner>/librevdi-tunnel` (release image) | BSD-3-Clause (OpenUDS tunnel server) plus its Rust crates (`cargo metadata` of `upstream/uds-tunnel-server`) and Debian packages |
 | `ubuntu:24.04` (base of the broker image) | various (Debian/Ubuntu package licenses, see `/usr/share/doc/*/copyright` in the image) |
 | `postgres:17-alpine` | PostgreSQL License |
 | `memcached:1.6-alpine` | BSD-3-Clause |

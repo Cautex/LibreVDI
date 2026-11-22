@@ -1,7 +1,7 @@
 # Installation (Docker Compose)
 
-> Stand: Phase 1. Broker, Admin-Oberfläche und Benutzerportal laufen. Proxmox-Anbindung,
-> Agent-Pakete und Tunnel folgen in Phase 2.
+> Stand: Phase 2b. Broker, Admin-Oberfläche, Portal, Proxmox-Pools, Windows-Client/-Agent,
+> optionaler Tunnel und signierte RDP-Dateien.
 
 ## Voraussetzungen
 
@@ -41,11 +41,24 @@ Die `.env` enthält Geheimnisse: Rechte auf `600` setzen und nie einchecken (ste
 
 ## 3. Bauen und starten
 
+**Variante A – fertiges Release-Image** (empfohlen, sobald ein Release veröffentlicht ist; enthält
+auch die Windows-Installer, siehe [release.md](release.md)):
+
+```bash
+git checkout v0.2.0                                   # Version wählen
+echo "LIBREVDI_BROKER_IMAGE=ghcr.io/<owner>/librevdi-broker:0.2.0" >> .env
+docker compose pull
+docker compose up -d --no-build
+```
+
+**Variante B – selbst bauen** (Entwicklungsstand):
+
 ```bash
 docker compose build        # baut das Broker-Image (einige Minuten)
 docker compose up -d
-docker compose ps           # broker-web, broker-tasks und postgres sollten "healthy" sein
 ```
+
+`docker compose ps`: broker-web, broker-tasks und postgres sollten "healthy" sein.
 
 Beim ersten Start erledigt `broker-init`:
 
@@ -147,6 +160,11 @@ Schlüssel-Backup sicher und getrennt aufbewahren.
 ## Aktualisieren
 
 ```bash
+# Release-Image: Version in .env (LIBREVDI_BROKER_IMAGE) anpassen, dann
+git fetch --tags && git checkout v<neue Version>
+docker compose pull && docker compose up -d --no-build
+
+# selbst gebaut:
 git pull --recurse-submodules
 docker compose build
 docker compose up -d        # broker-init migriert die Datenbank automatisch
