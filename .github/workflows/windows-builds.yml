@@ -1,0 +1,81 @@
+name: Windows builds (agent + client)
+
+# Builds the upstream OpenUDS 5.0 actor (agent) and launcher (client) for Windows.
+# Phase 2, step 1: plain release binaries as CI artifacts. Installers follow in step 2.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - "upstream/uds-actor"
+      - "upstream/uds-client"
+      - "packaging/windows/**"
+      - ".github/workflows/windows-builds.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustc --version
+          cargo --version
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: upstream/uds-actor
+      - name: Build agent (release)
+        working-directory: upstream/uds-actor
+        run: cargo build --release --locked
+      - name: Collect binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Get-ChildItem upstream/uds-actor/target/release/*.exe | Copy-Item -Destination out
+          Get-ChildItem out | Format-Table Name, Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: librevdi-agent-windows-x64
+          path: out/*.exe
+          retention-days: 14
+
+  client:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: upstream/uds-client
+      - name: Build client launcher (release)
+        working-directory: upstream/uds-client
+        run: cargo build --release --locked -p launcher
+      - name: Collect binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Get-ChildItem upstream/uds-client/target/release/*.exe | Copy-Item -Destination out
+          Get-ChildItem upstream/uds-client/target/release/*.dll -ErrorAction SilentlyContinue | Copy-Item -Destination out
+          Get-ChildItem out | Format-Table Name, Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: librevdi-client-windows-x64
+          path: out/*
+          retention-days: 14
