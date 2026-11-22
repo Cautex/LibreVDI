@@ -10,6 +10,7 @@ on:
       - "upstream/uds-actor"
       - "upstream/uds-client"
       - "packaging/windows/**"
+      - "branding/**"
       - ".github/workflows/windows-builds.yml"
   workflow_dispatch:
 
@@ -37,6 +38,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: upstream/uds-actor
+      - name: Apply LibreVDI branding (agent sources, icons)
+        run: |
+          python -m pip install --quiet polib pillow
+          python packaging/windows/brand_upstream.py agent upstream/uds-actor branding
       - name: Build agent (release)
         working-directory: upstream/uds-actor
         env:
@@ -115,6 +120,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: upstream/uds-client
+      - name: Apply LibreVDI branding (client sources, icons, translations)
+        run: |
+          python -m pip install --quiet polib pillow
+          python packaging/windows/brand_upstream.py client upstream/uds-client branding
       - name: Build client launcher (release)
         working-directory: upstream/uds-client
         run: cargo build --release --locked -p launcher

@@ -40,6 +40,9 @@ VIAddVersionKey "FileDescription" "${PRODUCT} installer (${VARIANT})"
 VIAddVersionKey "ProductVersion" "${VERSION}"
 VIAddVersionKey "LegalCopyright" "LibreVDI contributors; based on OpenUDS (BSD-3-Clause)"
 
+!define MUI_ICON "..\..\branding\logo.ico"
+!define MUI_UNICON "..\..\branding\logo.ico"
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\..\upstream\uds-actor\LICENSE"
 !insertmacro MUI_PAGE_DIRECTORY
