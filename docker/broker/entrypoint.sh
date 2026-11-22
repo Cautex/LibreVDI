@@ -48,6 +48,7 @@ case "$cmd" in
     log "init done"
     ;;
   web)
+    python -m librevdi_ext.downloads
     exec daphne -b 0.0.0.0 -p "${LIBREVDI_PORT:-8000}" --proxy-headers \
       --access-log - server.asgi:application "$@"
     ;;

@@ -78,6 +78,10 @@ services:
   broker-web:
     <<: *broker
     command: ["web"]
+    volumes:
+      - broker-data:/var/lib/uds
+      # Windows installers offered in the portal (client) and admin UI (agent), see downloads/README.md
+      - ./downloads:/opt/librevdi/downloads:ro
     depends_on:
       broker-init:
         condition: service_completed_successfully

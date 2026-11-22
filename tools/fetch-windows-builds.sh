@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Downloads the Windows installers (agent + client) of the latest successful CI run
+# into ./downloads, so LibreVDI can offer them in the portal / admin UI.
+#
+#   GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh
+#
+# GITHUB_TOKEN: GitHub token that may read Actions artifacts of the repository
+#               (fine-grained token: repository access to this repo, permission "Actions: read").
+#               Downloading artifacts always needs a token, even for public repositories.
+# Optional:     REPO (default Cautex/LibreVDI), BRANCH (default: any branch), RUN_ID (specific run)
+set -euo pipefail
+
+REPO="${REPO:-Cautex/LibreVDI}"
+WORKFLOW="windows-builds.yml"
+TOKEN="${GITHUB_TOKEN:?set GITHUB_TOKEN (needs Actions: read)}"
+DEST="$(cd "$(dirname "$0")/.." && pwd)/downloads"
+API="https://api.github.com/repos/${REPO}"
+
+gh_api() {
+  curl -fsSL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" "$@"
+}
+
+if [[ -z "${RUN_ID:-}" ]]; then
+  query="status=success&per_page=1"
+  [[ -n "${BRANCH:-}" ]] && query="${query}&branch=${BRANCH}"
+  RUN_ID=$(gh_api "${API}/actions/workflows/${WORKFLOW}/runs?${query}" |
+    python3 -c 'import json,sys; r=json.load(sys.stdin)["workflow_runs"]; print(r[0]["id"] if r else "")')
+  [[ -n "$RUN_ID" ]] || { echo "no successful run of ${WORKFLOW} found" >&2; exit 1; }
+fi
+echo "== run ${RUN_ID}"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+gh_api "${API}/actions/runs/${RUN_ID}/artifacts" |
+  python3 -c 'import json,sys
+for a in json.load(sys.stdin)["artifacts"]:
+    if not a["expired"]:
+        print(a["name"], a["archive_download_url"])' |
+  while read -r name url; do
+    echo "== artifact ${name}"
+    gh_api -o "${tmp}/${name}.zip" "$url"
+    python3 -m zipfile -e "${tmp}/${name}.zip" "${tmp}/${name}"
+  done
+
+mkdir -p "$DEST"
+found=0
+while IFS= read -r -d '' f; do
+  cp -f "$f" "$DEST/"
+  echo "   $(basename "$f")"
+  found=1
+done < <(find "$tmp" -name 'LibreVDI-*-Setup-*.exe' -print0)
+
+[[ $found -eq 1 ]] || { echo "no LibreVDI installers in the artifacts" >&2; exit 1; }
+echo "== saved to ${DEST}. Activate with: docker compose restart broker-web"

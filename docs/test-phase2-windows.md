@@ -112,26 +112,42 @@ In der Admin-Oberfläche (`/uds/adm/`):
 
 ## Teil 5 – Agent in der VM installieren und registrieren
 
-1. Aus dem GitHub-Actions-Lauf „Windows builds (agent + client)“ das Artefakt
-   **`librevdi-agent-windows-x64`** herunterladen (GitHub → Actions → Lauf → *Artifacts*),
-   in die VM kopieren, entpacken.
-2. **`LibreVDI-Agent-unmanaged-Setup-….exe`** als Administrator ausführen.
-3. Startmenü → **LibreVDI → „LibreVDI Agent konfigurieren“**:
+**Installer bereitstellen (einmalig, auf dem Docker-Host):** LibreVDI bietet die Windows-
+Installer selbst zum Download an. Dazu die Dateien in den Ordner `downloads/` legen:
+
+```bash
+cd /opt/LibreVDI && git pull
+GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh   # holt die neuesten CI-Builds
+docker compose up -d broker-web                       # bzw. restart, veröffentlicht die Dateien
+```
+
+Der Token braucht nur Leserechte auf Actions dieses Repos (GitHub → Settings → Developer
+settings → *Fine-grained tokens* → Repository *LibreVDI* → Permission **Actions: Read-only**).
+Alternativ die `.exe`-Dateien aus den Artefakten von Hand nach `downloads/` kopieren (z. B. per
+`scp`/WinSCP).
+
+1. In der VM in Edge `https://<LIBREVDI_DOMAIN>/` öffnen, als **root** anmelden.
+2. Im Portal oben rechts das Benutzermenü → **Downloads** (nur für Admins sichtbar, direkt:
+   `https://<LIBREVDI_DOMAIN>/uds/page/downloads`) → „UDS Actor for Unmanaged windows machines“.
+   Die Beschriftung stammt noch von openUDS; die Datei ist der **LibreVDI-Agent (unmanaged)**.
+3. Die heruntergeladene Datei als Administrator ausführen und installieren.
+4. Startmenü → **LibreVDI → „LibreVDI Agent konfigurieren“**:
    - SSL Validation: **Verify certificate**
    - UDS Broker Host: `<LIBREVDI_DOMAIN>`
    - Service Token: der Token aus Teil 4, Schritt 1
    - **Test** → erfolgreich → **Save Configuration**
-4. VM neu starten (oder Dienst neu starten).
-5. Im Broker: Pool „Mein Windows-Desktop“ → die VM sollte als **verfügbar** mit IP erscheinen
+5. VM neu starten (oder Dienst neu starten).
+6. Im Broker: Pool „Mein Windows-Desktop“ → die VM sollte als **verfügbar** mit IP erscheinen
    (Reiter *Assigned services* bzw. nach der ersten Anmeldung zugewiesen).
 
 ## Teil 6 – Client auf dem Benutzer-PC und Test
 
-1. Aus dem neuesten Lauf „Windows builds (agent + client)“ das Artefakt
-   **`librevdi-client-windows-x64`** herunterladen und entpacken.
+1. Auf dem Benutzer-PC `https://<LIBREVDI_DOMAIN>/` öffnen → oben **Launcher** →
+   **Windows** → `LibreVDI-Client-Setup` herunterladen (liegt bereit, sobald Teil 5 –
+   „Installer bereitstellen“ erledigt ist).
 2. Bei `LIBREVDI_TLS=internal`: Root-CA wie in Teil 3 auch auf dem **Benutzer-PC** importieren
    (die zwei Befehle mit `curl.exe` und `certutil`, als Administrator).
-3. **`LibreVDI-Client-Setup-….exe`** als Administrator installieren. Er landet unter
+3. Den heruntergeladenen Client-Installer als Administrator ausführen. Er landet unter
    `C:\Program Files\LibreVDI\Client` und registriert Links vom Typ `udssv2://`.
 4. Im Browser `https://<LIBREVDI_DOMAIN>/` öffnen → Authenticator **„Lokal“** wählen →
    Benutzer `anna` anmelden.
