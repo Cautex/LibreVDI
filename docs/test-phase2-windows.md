@@ -116,15 +116,21 @@ In der Admin-Oberfläche (`/uds/adm/`):
 
 ## Teil 6 – Client auf dem Benutzer-PC und Test
 
-> Der **LibreVDI-Client-Installer** wird gerade gebaut (FreeRDP + Abhängigkeiten, erster Build
-> dauert lange). Dieser Abschnitt wird ergänzt, sobald er verfügbar ist.
+1. Aus dem neuesten Lauf „Windows builds (agent + client)“ das Artefakt
+   **`librevdi-client-windows-x64`** herunterladen und entpacken.
+2. Bei `LIBREVDI_TLS=internal`: Root-CA wie in Teil 3 auch auf dem **Benutzer-PC** importieren
+   (`certutil -addstore -f Root librevdi-root-ca.crt` als Administrator).
+3. **`LibreVDI-Client-Setup-….exe`** als Administrator installieren. Er landet unter
+   `C:\Program Files\LibreVDI\Client` und registriert Links vom Typ `udssv2://`.
+4. Im Browser `https://<LIBREVDI_DOMAIN>/` öffnen → Authenticator **„Lokal“** wählen →
+   Benutzer `anna` anmelden.
+5. Kachel **„Mein Windows-Desktop“** anklicken → der Browser fragt, ob „LibreVDI Protocol“ bzw.
+   der Client geöffnet werden soll → **Öffnen** (ggf. „immer erlauben“ anhaken).
+6. Der Client startet `mstsc.exe` → Windows-Anmeldedaten der VM eingeben (`vdi-test`) →
+   **Desktop erscheint**.
 
-Geplanter Ablauf:
-1. Root-CA wie in Teil 3 auch auf dem Benutzer-PC importieren (bei `LIBREVDI_TLS=internal`).
-2. `LibreVDI-Client-Setup.exe` installieren (registriert Links `udssv2://`).
-3. Im Browser `https://<LIBREVDI_DOMAIN>/` → Anmeldung mit **Authenticator „Lokal“**, Benutzer
-   `anna` → Kachel „Mein Windows-Desktop“ → Browser fragt, ob der LibreVDI-Client geöffnet
-   werden soll → **Öffnen** → `mstsc.exe` startet → Windows-Anmeldung (`vdi-test`) → Desktop.
+Wenn Schritt 5/6 nicht klappt, hilft das Client-Log im `%TEMP%`-Ordner des Benutzers
+(Dateien mit `launcher` bzw. `uds` im Namen).
 
 ## Rückmeldung
 
