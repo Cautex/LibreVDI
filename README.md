@@ -41,6 +41,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Hinweise zu Upstream](docs/upstream-notes.md)
 - [Testanleitung Stand Phase 1](docs/test-phase1.md)
 - [Phase 2: persistenter Windows-Desktop](docs/test-phase2-windows.md)
+- [Tunnel (optional, pro Pool)](docs/tunnel.md)
 - [Roadmap](docs/roadmap.md)
 - [Software Dritter / Lizenzen](THIRD_PARTY.md)
 

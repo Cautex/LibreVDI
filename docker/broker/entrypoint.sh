@@ -4,6 +4,7 @@
 #   init     one-shot: wait for DB, create keys, migrate, apply LibreVDI configuration
 #   web      run the web/API server (ASGI, daphne)
 #   tasks    run the background task manager (warm pool, cleanup, ...)
+#   tunnel-setup  one-shot: register the bundled tunnel server (compose profile "tunnel")
 #   manage   run a Django management command, e.g. "manage showconfig"
 #   *        exec anything else
 set -eu
@@ -54,6 +55,9 @@ case "$cmd" in
     ;;
   tasks)
     exec python manage.py task_manager --start --foreground "$@"
+    ;;
+  tunnel-setup)
+    exec python -m librevdi_ext.tunnel_setup "$@"
     ;;
   manage)
     exec python manage.py "$@"

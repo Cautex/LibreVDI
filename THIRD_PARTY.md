@@ -9,9 +9,9 @@ notices and license texts are kept unchanged in the respective sources.
 | Component | Path | License | Copyright | Used in |
 |---|---|---|---|---|
 | OpenUDS broker | `upstream/broker` | BSD-3-Clause | © Virtual Cable S.L. | broker image (unmodified) |
-| OpenUDS actor (agent) | `upstream/uds-actor` | BSD-3-Clause | © Virtual Cable S.L.U. | not yet packaged (Phase 2) |
-| OpenUDS client/launcher | `upstream/uds-client` | BSD-3-Clause | © Virtual Cable S.L. | not yet packaged (Phase 2) |
-| OpenUDS tunnel server | `upstream/uds-tunnel-server` | BSD-3-Clause | © Virtual Cable S.L. | not yet packaged (Phase 2) |
+| OpenUDS actor (agent) | `upstream/uds-actor` | BSD-3-Clause | © Virtual Cable S.L.U. | LibreVDI Agent (Windows installer) |
+| OpenUDS client/launcher | `upstream/uds-client` | BSD-3-Clause | © Virtual Cable S.L. | LibreVDI Client (Windows installer) |
+| OpenUDS tunnel server | `upstream/uds-tunnel-server` | BSD-3-Clause | © Virtual Cable S.L. | tunnel image (optional compose profile) |
 
 "OpenUDS" and "UDS" are names of Virtual Cable S.L. LibreVDI is an independent project; it is
 **not** affiliated with or endorsed by Virtual Cable S.L. (BSD-3-Clause, clause 3).

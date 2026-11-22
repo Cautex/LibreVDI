@@ -101,8 +101,9 @@ RUN useradd --system --uid 10001 --home-dir /var/lib/uds --shell /usr/sbin/nolog
  && LIBREVDI_BUILD=1 python manage.py collectstatic --noinput >/dev/null \
  && python /opt/librevdi/apply_branding.py \
  && chmod -R a+rX /app \
- && mkdir -p /app/static/clients /app/uds/osmanagers/WindowsOsManager/files \
- && chown -R uds:uds /var/lib/uds /app/log /app/static/clients /app/uds/osmanagers/WindowsOsManager/files
+ && mkdir -p /app/static/clients /app/uds/osmanagers/WindowsOsManager/files /run/librevdi-tunnel \
+ && chown -R uds:uds /var/lib/uds /app/log /app/static/clients /app/uds/osmanagers/WindowsOsManager/files \
+    /run/librevdi-tunnel
 
 WORKDIR /app
 USER uds

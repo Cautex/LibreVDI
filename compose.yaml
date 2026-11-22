@@ -103,6 +103,43 @@ services:
       memcached:
         condition: service_started
 
+  # --- optional: tunnel (docker compose --profile tunnel up -d) -------------------------
+  tunnel-init:
+    <<: *broker
+    profiles: [tunnel]
+    restart: "no"
+    command: ["tunnel-setup"]
+    environment:
+      <<: *broker-env
+      LIBREVDI_ROOT_USER: ${LIBREVDI_ROOT_USER:-root}
+      LIBREVDI_ROOT_PASSWORD: ${LIBREVDI_ROOT_PASSWORD:?set LIBREVDI_ROOT_PASSWORD in .env}
+      LIBREVDI_TUNNEL_HOST: ${LIBREVDI_TUNNEL_HOST:-${LIBREVDI_DOMAIN}}
+      LIBREVDI_TUNNEL_PORT: ${LIBREVDI_TUNNEL_PORT:-4443}
+    volumes:
+      - tunnel-token:/run/librevdi-tunnel
+    depends_on:
+      broker-web:
+        condition: service_healthy
+      proxy:
+        condition: service_started
+
+  tunnel:
+    image: ${LIBREVDI_TUNNEL_IMAGE:-librevdi-tunnel:local}
+    build:
+      context: .
+      dockerfile: docker/tunnel/Dockerfile
+    profiles: [tunnel]
+    restart: unless-stopped
+    ports:
+      - "${LIBREVDI_TUNNEL_PORT:-4443}:4443/tcp"
+      - "${LIBREVDI_TUNNEL_PORT:-4443}:4443/udp"
+    volumes:
+      - tunnel-token:/run/librevdi-tunnel:ro
+    depends_on:
+      tunnel-init:
+        condition: service_completed_successfully
+    networks: [backend, frontend]
+
   proxy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -123,6 +160,7 @@ services:
     networks: [backend, frontend]
 
 volumes:
+  tunnel-token:
   postgres-data:
   broker-data:
   caddy-data:

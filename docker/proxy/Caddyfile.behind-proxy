@@ -46,3 +46,11 @@
 		header_up X-Forwarded-Proto https
 	}
 }
+
+# Internal endpoint for the bundled tunnel server (docker network only, port not published):
+# the broker redirects plain HTTP to HTTPS, TLS terminates in front of it.
+http://:8081 {
+	reverse_proxy broker-web:8000 {
+		header_up X-Forwarded-Proto https
+	}
+}

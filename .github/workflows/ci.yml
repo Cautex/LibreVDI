@@ -27,7 +27,7 @@ jobs:
           ruff check .
           ruff format --check .
       - name: shellcheck
-        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh tests/smoke.sh tests/load.sh
+        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh docker/tunnel/entrypoint.sh tests/smoke.sh tests/load.sh tests/tunnel.sh tools/fetch-windows-builds.sh
       - name: compose file
         run: |
           cp .env.example .env
@@ -62,12 +62,22 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Build tunnel image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/tunnel/Dockerfile
+          tags: librevdi-tunnel:ci
+          load: true
+          cache-from: type=gha,scope=tunnel
+          cache-to: type=gha,mode=max,scope=tunnel
       - name: Prepare .env with throw-away secrets
         run: |
           cp .env.example .env
           sed -i "s/CHANGE_ME_DB_PASSWORD/$(openssl rand -hex 16)/; s/CHANGE_ME_ADMIN_PASSWORD/$(openssl rand -hex 12)/" .env
           {
             echo "LIBREVDI_BROKER_IMAGE=librevdi-broker:ci"
+            echo "LIBREVDI_TUNNEL_IMAGE=librevdi-tunnel:ci"
             echo "LIBREVDI_HTTP_PORT=8080"
             echo "LIBREVDI_HTTPS_PORT=8443"
           } >> .env
@@ -77,14 +87,18 @@ jobs:
         run: tests/smoke.sh
       - name: Load test (DB connection handling)
         run: tests/load.sh 30
+      - name: Tunnel (profile) – registration and listener
+        run: |
+          docker compose --profile tunnel up -d --no-build
+          tests/tunnel.sh
       - name: Restart (idempotent init) and smoke test again
         run: |
-          docker compose down
-          docker compose up -d --no-build
+          docker compose --profile tunnel down
+          docker compose --profile tunnel up -d --no-build
           tests/smoke.sh
       - name: Logs on failure
         if: failure()
         run: docker compose logs --no-color --tail=200
       - name: Tear down
         if: always()
-        run: docker compose down -v
+        run: docker compose --profile tunnel down -v
