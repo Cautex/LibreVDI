@@ -49,7 +49,9 @@ Teil des Tests.
 
 ```bash
 # Rolle mit den Rechten, die der Treiber nutzt
-pveum role add LibreVDI -privs "VM.Audit VM.Allocate VM.Clone VM.Config.CPU VM.Config.Memory VM.Config.Network VM.Config.Options VM.Config.Disk VM.Config.HWType VM.PowerMgmt VM.Snapshot VM.Snapshot.Rollback VM.Console Datastore.Audit Datastore.AllocateSpace Pool.Audit Sys.Audit SDN.Use"
+# Proxmox VE 9: VM.GuestAgent.Audit (IP-Adresse der VM über den QEMU Guest Agent lesen)
+# Proxmox VE 8: statt VM.GuestAgent.Audit das Recht VM.Monitor verwenden
+pveum role add LibreVDI -privs "VM.Audit VM.Allocate VM.Clone VM.Config.CPU VM.Config.Memory VM.Config.Network VM.Config.Options VM.Config.Disk VM.Config.HWType VM.PowerMgmt VM.Snapshot VM.Snapshot.Rollback VM.Console VM.GuestAgent.Audit Datastore.Audit Datastore.AllocateSpace Pool.Audit Sys.Audit SDN.Use"
 
 # Benutzer, Pool und Token
 pveum user add librevdi@pve --comment "LibreVDI broker"
@@ -105,6 +107,7 @@ kontrollieren, dass nichts übrig bleibt.
 | `storage '…' does not support vm images` | PBS-Storage im Service gewählt | Service mit VM-Storage neu anlegen |
 | `Permission check failed (/, Sys.Console)` | HA im Service aktiviert (Standard) | Service mit **HA: Disabled** neu anlegen |
 | `Item has associated deployed services` beim Löschen | Service hängt noch an einem Service Pool | zuerst den Pool löschen |
+| `Permission check failed (/vms/…, VM.GuestAgent.Audit…)`, Verbindung hängt bei 50 % | Rolle ohne Guest-Agent-Recht (PVE 9) | `pveum role modify LibreVDI --append 1 --privs VM.GuestAgent.Audit` (PVE 8: `VM.Monitor`) |
 | `Item changed by another administrator` beim Speichern | noch ungeklärt (siehe upstream-notes.md) | Seite neu laden; sonst Service neu anlegen |
 
 ## Was ich als Rückmeldung brauche
