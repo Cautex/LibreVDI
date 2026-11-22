@@ -28,7 +28,7 @@ Vorher in Proxmox das **virtio-win-ISO** bereitstellen: ISO-Speicher (z. B. `loc
 
 | Reiter | Einstellung |
 |---|---|
-| General | Name z. B. `win11-desktop01`; Resource Pool: `librevdi` |
+| General | Name z. B. `win11-desktop01`; Resource Pool: **`librevdi-persistent`** (eigener Pool für feste Desktops, vorher unter *Datacenter → Permissions → Pools* anlegen) |
 | OS | Windows-11-ISO; Type *Microsoft Windows*, Version *11/2022/2025*; **„Add additional drive for VirtIO drivers“** mit dem virtio-win-ISO |
 | System | Machine **q35**, BIOS **OVMF (UEFI)**, EFI Storage + **TPM 2.0** (v2.0) auf dem VM-Storage, **Qemu Agent: an** |
 | Disks | Bus **SCSI** (Controller *VirtIO SCSI single*), 64 GB+, **Discard** an, **IO thread** an, VM-Storage (nicht PBS) |
@@ -90,7 +90,10 @@ In der Admin-Oberfläche (`/uds/adm/`):
 
 1. **Services → Providers → pve → Services → New → „Proxmox Fixed Machines“**
    - Name: `Windows 11 persistent`
-   - Resource Pool: `librevdi`
+   - Resource Pool: `librevdi-persistent` – die Liste *Machines* zeigt nur VMs aus diesem
+     Proxmox-Pool. Fehlt die VM: in Proxmox unter *Pools → librevdi-persistent → Members → Add*
+     hinzufügen und den Dialog neu öffnen. **Nicht** die Klone/Templates aus dem Pool `librevdi`
+     wählen, die gehören dem Floating-Pool.
    - **Service Token:** ein langes Zufallswort (z. B. `openssl rand -hex 24`), notieren –
      der Agent braucht es gleich
    - Machines: die Windows-VM `win11-desktop01` auswählen
