@@ -80,6 +80,43 @@ E-Mail-Adresse setzen (Let's Encrypt, DNS-Name muss öffentlich auflösbar und P
 außen erreichbar sein) oder LibreVDI hinter einen vorhandenen Reverse Proxy mit gültigem
 Zertifikat stellen.
 
+## 4a. Variante: hinter einem vorhandenen Reverse Proxy (z. B. Nginx Proxy Manager)
+
+Hat das Netz bereits einen Reverse Proxy mit **gültigem Zertifikat** (z. B. Wildcard für
+`*.int.example.de`), übernimmt dieser TLS. Clients und VMs müssen dann **kein** Zertifikat
+importieren.
+
+**1. `.env` auf dem Docker-Host**
+
+```bash
+LIBREVDI_DOMAIN=vdi.int.example.de
+LIBREVDI_PROXY_CONFIG=Caddyfile.behind-proxy
+LIBREVDI_TRUSTED_PROXIES=192.168.1.10/32   # genaue IP des Reverse Proxy
+LIBREVDI_HTTP_PORT=8080                    # Port, den der Reverse Proxy anspricht
+```
+
+`LIBREVDI_TRUSTED_PROXIES` muss die IP sein, von der der Reverse Proxy den Docker-Host anspricht.
+Nur dann sieht LibreVDI die echten Client-IPs (wichtig für Logs und die IP-Sperre nach
+Fehlversuchen). **Nicht** `private_ranges` verwenden: Dann könnte jeder LAN-Client eine
+beliebige IP vortäuschen. Danach `docker compose up -d --force-recreate proxy broker-web`.
+
+**2. Proxy Host im Nginx Proxy Manager**
+
+| Feld | Wert |
+|---|---|
+| Domain Names | `vdi.int.example.de` |
+| Scheme / Forward Hostname / Port | `http` / IP des Docker-Hosts / `8080` |
+| Websockets Support | **an** |
+| Block Common Exploits | aus (kann REST-Aufrufe stören) |
+| SSL | gültiges Zertifikat (z. B. Wildcard), **Force SSL**, HTTP/2 |
+
+**3. Firewall:** Den HTTP-Port (`8080`) auf dem Docker-Host nur für den Reverse Proxy freigeben.
+In diesem Modus behandelt LibreVDI alle Anfragen als HTTPS.
+
+**Prüfen:** `https://vdi.int.example.de/` öffnet ohne Zertifikatswarnung;
+`SMOKE_PORT=443 SMOKE_HOST_IP=192.168.1.10 tests/smoke.sh` auf dem Docker-Host
+(IP des Reverse Proxy).
+
 ## 5. Empfohlene Härtung nach der Einrichtung
 
 Diese Punkte meldet auch der Sicherheitscheck im Dashboard:

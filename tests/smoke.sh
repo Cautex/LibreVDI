@@ -17,12 +17,15 @@ set -a
 set +a
 
 DOMAIN="${LIBREVDI_DOMAIN:?}"
-PORT="${LIBREVDI_HTTPS_PORT:-443}"
+# SMOKE_PORT: HTTPS port to test (e.g. the outer reverse proxy in "behind-proxy" mode)
+PORT="${SMOKE_PORT:-${LIBREVDI_HTTPS_PORT:-443}}"
 BASE="https://${DOMAIN}:${PORT}"
 ZERO_AUTH="00000000-0000-0000-0000-000000000000"  # built-in super user "authenticator"
 
 fail=0
-c() { curl --noproxy '*' -sk --max-time 20 --resolve "${DOMAIN}:${PORT}:127.0.0.1" "$@"; }
+# SMOKE_HOST_IP: where DOMAIN is reached (default: this host; in "behind-proxy" mode the outer proxy)
+HOST_IP="${SMOKE_HOST_IP:-127.0.0.1}"
+c() { curl --noproxy '*' -sk --max-time 20 --resolve "${DOMAIN}:${PORT}:${HOST_IP}" "$@"; }
 
 expect_status() {  # path expected_code
   local code
@@ -63,7 +66,7 @@ done
 expect_status /uds/page/login 200
 expect_redirect /uds/adm/ /uds/page/login  # admin UI requires login
 expect_status /uds/res/admin/main.js 200
-if [[ "${LIBREVDI_TLS:-internal}" == "internal" ]]; then
+if [[ "${LIBREVDI_PROXY_CONFIG:-Caddyfile}" == "Caddyfile" && "${LIBREVDI_TLS:-internal}" == "internal" ]]; then
   expect_status /ca.crt 200  # root CA download for clients/VMs
 fi
 expect_status /healthz 404

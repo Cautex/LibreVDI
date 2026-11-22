@@ -68,7 +68,9 @@ powercfg /change monitor-timeout-ac 0
 
 - **Testbenutzer:** einen lokalen Benutzer anlegen (z. B. `vdi-test`) und zur Gruppe
   **Remotedesktopbenutzer** hinzufügen (Administratoren dürfen ohnehin).
-- **Zertifikat** (nur bei `LIBREVDI_TLS=internal`): LibreVDI liefert seine Root-CA selbst aus.
+- **Zertifikat:** entfällt, wenn LibreVDI hinter einem Reverse Proxy mit gültigem Zertifikat
+  läuft ([installation.md, Abschnitt 4a](installation.md)) – empfohlen.
+  Nur bei `LIBREVDI_TLS=internal`: LibreVDI liefert seine Root-CA selbst aus.
   In der VM als Administrator (PowerShell oder Eingabeaufforderung):
   ```powershell
   curl.exe -k -o $env:TEMP\librevdi-ca.crt https://<LIBREVDI_DOMAIN>/ca.crt
