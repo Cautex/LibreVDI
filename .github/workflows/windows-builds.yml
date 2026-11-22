@@ -67,6 +67,16 @@ jobs:
 
   client:
     runs-on: windows-2025
+    timeout-minutes: 240
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      FREERDP_ROOT: C:\dev\freerdp
+      FREERDP_VERSION: "3.26.0"
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+      # audiopus_sys bundles an old opus CMakeLists.txt; CMake >= 4 refuses it otherwise
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+      # self-contained Rust binaries; makes vcpkg-rs pick the static libvpx triplet
+      RUSTFLAGS: -C target-feature=+crt-static
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,21 +85,39 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
+      - name: Restore native dependencies (vcpkg + FreeRDP)
+        id: deps-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\dev\freerdp
+          key: client-deps-${{ runner.os }}-freerdp-3.26.0-${{ hashFiles('packaging/windows/build-client-deps.ps1') }}
+      - name: Build native dependencies
+        shell: pwsh
+        run: packaging\windows\build-client-deps.ps1
+      # Save right away (not only on job success): the first build takes about an hour
+      - name: Save native dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\dev\freerdp
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: upstream/uds-client
       - name: Build client launcher (release)
         working-directory: upstream/uds-client
-        env:
-          # audiopus_sys bundles an old opus CMakeLists.txt; CMake >= 4 refuses it otherwise
-          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: cargo build --release --locked -p launcher
-      - name: Collect binaries
+      - name: Collect binaries and runtime DLLs
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force out | Out-Null
           Get-ChildItem upstream/uds-client/target/release/*.exe | Copy-Item -Destination out
-          Get-ChildItem upstream/uds-client/target/release/*.dll -ErrorAction SilentlyContinue | Copy-Item -Destination out
+          Get-ChildItem "$env:FREERDP_ROOT\bin\*.dll" | Copy-Item -Destination out
+          Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows\bin\*.dll" | Copy-Item -Destination out
           Get-ChildItem out | Format-Table Name, Length
       - uses: actions/upload-artifact@v4
         with:
