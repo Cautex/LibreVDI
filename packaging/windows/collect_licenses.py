@@ -86,6 +86,7 @@ def cargo_components(cargo_dir: str, roots: list[str] | None) -> list[Component]
         check=True,
         capture_output=True,
         text=True,
+        encoding="utf-8",  # Windows default would be the ANSI code page
     ).stdout
     result = []
     for pkg in runtime_packages(json.loads(raw), roots):

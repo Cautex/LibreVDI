@@ -15,7 +15,11 @@ on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
     branches: ["claude/**"]
-    paths: [".github/workflows/release.yml"]
+    # dry run when the release pipeline itself changes
+    paths:
+      - ".github/workflows/release.yml"
+      - "packaging/windows/collect_licenses.py"
+      - "packaging/windows/set-version.ps1"
   workflow_dispatch:
     inputs:
       version:
