@@ -39,6 +39,9 @@ jobs:
           workspaces: upstream/uds-actor
       - name: Build agent (release)
         working-directory: upstream/uds-actor
+        env:
+          # static MSVC runtime: no VCRUNTIME140.dll needed on fresh Windows installs
+          RUSTFLAGS: -C target-feature=+crt-static
         run: cargo build --release --locked
       - name: Collect binaries
         shell: pwsh
@@ -46,6 +49,9 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           Get-ChildItem upstream/uds-actor/target/release/*.exe | Copy-Item -Destination out
           Get-ChildItem out | Format-Table Name, Length
+      - name: Check DLL dependencies (must only need Windows system DLLs)
+        shell: pwsh
+        run: packaging\windows\check-dependencies.ps1 out
       - name: Build installers (NSIS)
         shell: pwsh
         run: |
@@ -119,7 +125,15 @@ jobs:
           Get-ChildItem upstream/uds-client/target/release/*.exe | Copy-Item -Destination out
           Get-ChildItem "$env:FREERDP_ROOT\bin\*.dll" | Copy-Item -Destination out
           Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows\bin\*.dll" | Copy-Item -Destination out
+          # App-local Visual C++ runtime (redistributable files) for FreeRDP/FFmpeg DLLs built with /MD
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $crt = Get-ChildItem "$vs\VC\Redist\MSVC\*\x64\Microsoft.VC*.CRT" -Directory | Sort-Object FullName | Select-Object -Last 1
+          Write-Host "VC runtime from $($crt.FullName)"
+          Get-ChildItem "$($crt.FullName)\*.dll" | Copy-Item -Destination out
           Get-ChildItem out | Format-Table Name, Length
+      - name: Check DLL dependencies (everything not shipped must be a Windows system DLL)
+        shell: pwsh
+        run: packaging\windows\check-dependencies.ps1 out
       - name: Build installer (NSIS)
         shell: pwsh
         run: |

@@ -71,7 +71,10 @@ Section "Agent"
   File /oname=LICENSE-OpenUDS.txt "..\..\upstream\uds-actor\LICENSE"
 
   ; Windows service (name defined by upstream binary)
-  ExecWait '"$INSTDIR\udsactor-service.exe" --install'
+  ExecWait '"$INSTDIR\udsactor-service.exe" --install' $0
+  ${If} $0 != 0
+    MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0).$\r$\nThe LibreVDI Agent service could not be installed (code $0)."
+  ${EndIf}
 
   ; Broker -> agent communication (default listener port 43910)
   nsExec::Exec 'netsh advfirewall firewall delete rule name="LibreVDI Agent"'
