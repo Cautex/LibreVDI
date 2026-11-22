@@ -45,6 +45,20 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           Get-ChildItem upstream/uds-actor/target/release/*.exe | Copy-Item -Destination out
           Get-ChildItem out | Format-Table Name, Length
+      - name: Build installers (NSIS)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
+            choco install nsis -y --no-progress
+            $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
+          }
+          $version = "0.1.0-dev.${{ github.run_number }}"
+          foreach ($variant in @("unmanaged", "managed")) {
+            makensis /V2 /DVERSION=$version /DVARIANT=$variant packaging\windows\agent.nsi
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          Move-Item packaging\windows\LibreVDI-Agent-*-Setup-*.exe out\
+          Get-ChildItem out | Format-Table Name, Length
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-agent-windows-x64
@@ -66,6 +80,9 @@ jobs:
           workspaces: upstream/uds-client
       - name: Build client launcher (release)
         working-directory: upstream/uds-client
+        env:
+          # audiopus_sys bundles an old opus CMakeLists.txt; CMake >= 4 refuses it otherwise
+          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: cargo build --release --locked -p launcher
       - name: Collect binaries
         shell: pwsh
