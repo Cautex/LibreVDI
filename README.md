@@ -40,6 +40,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Installation](docs/installation.md)
 - [Hinweise zu Upstream](docs/upstream-notes.md)
 - [Testanleitung Stand Phase 1](docs/test-phase1.md)
+- [Phase 2: persistenter Windows-Desktop](docs/test-phase2-windows.md)
 - [Software Dritter / Lizenzen](THIRD_PARTY.md)
 
 ## Lizenz
