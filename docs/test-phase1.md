@@ -76,8 +76,12 @@ In der Admin-Oberfläche (`/uds/adm/`):
    - Speichern, dann **Test** ausführen
    - [ ] Test erfolgreich
 2. Im Provider: **Services → Neu → Proxmox Clone** („Linked Clone“)
-   - Pool: `librevdi`, Base Machine: die Test-VM, *Use full clone*: aus,
-     Storage: der Linked-Clone-fähige Storage, Network: eure Bridge
+   - **HA: Disabled** – wichtig: Voreinstellung ist „Enabled“, das Feld ist später nicht mehr
+     änderbar, und HA braucht das weitreichende Recht `Sys.Console` auf `/`
+   - Pool: `librevdi`, Base Machine: die Test-VM, *Use full clone*: aus
+   - **Storage:** ein VM-Storage mit Linked-Clone-Unterstützung – **nicht** den
+     Proxmox-Backup-Server-Storage (wird mit angeboten und steht oft oben)
+   - Network: eure Bridge
 3. **Os Managers → Neu → Linux OS Manager** (Standardwerte)
 4. **Pools → Service Pools → Neu**
    - Service: der Proxmox-Clone-Service, OS Manager: der eben angelegte
@@ -93,6 +97,15 @@ In der Admin-Oberfläche (`/uds/adm/`):
 
 **Aufräumen:** Service Pool löschen (Broker entfernt Klone und Template), danach in Proxmox
 kontrollieren, dass nichts übrig bleibt.
+
+## Bekannte Stolpersteine (aus dem ersten Lab-Test)
+
+| Meldung | Ursache | Lösung |
+|---|---|---|
+| `storage '…' does not support vm images` | PBS-Storage im Service gewählt | Service mit VM-Storage neu anlegen |
+| `Permission check failed (/, Sys.Console)` | HA im Service aktiviert (Standard) | Service mit **HA: Disabled** neu anlegen |
+| `Item has associated deployed services` beim Löschen | Service hängt noch an einem Service Pool | zuerst den Pool löschen |
+| `Item changed by another administrator` beim Speichern | noch ungeklärt (siehe upstream-notes.md) | Seite neu laden; sonst Service neu anlegen |
 
 ## Was ich als Rückmeldung brauche
 
