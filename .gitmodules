@@ -1,0 +1,16 @@
+[submodule "upstream/broker"]
+	path = upstream/broker
+	url = https://github.com/VirtualCable/broker
+	branch = v5.0
+[submodule "upstream/uds-actor"]
+	path = upstream/uds-actor
+	url = https://github.com/VirtualCable/uds-actor
+	branch = v5.0
+[submodule "upstream/uds-client"]
+	path = upstream/uds-client
+	url = https://github.com/VirtualCable/uds-client
+	branch = v5.0
+[submodule "upstream/uds-tunnel-server"]
+	path = upstream/uds-tunnel-server
+	url = https://github.com/VirtualCable/uds-tunnel-server
+	branch = v5.0
