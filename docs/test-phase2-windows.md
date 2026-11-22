@@ -47,7 +47,11 @@ Vorher in Proxmox das **virtio-win-ISO** bereitstellen: ISO-Speicher (z. B. `loc
    Netzwerk. Später kann die VM auch einer AD-Domäne beitreten.
 4. Nach dem ersten Login: **`virtio-win-guest-tools.exe`** vom virtio-win-Laufwerk (oder deinen
    heruntergeladenen) installieren → Netzwerk-, Balloon-Treiber und **QEMU Guest Agent**.
-   In Proxmox unter *Summary* sollte jetzt die **IP-Adresse** der VM erscheinen.
+   In Proxmox unter *Summary* sollte jetzt bei **IPs** die IP-Adresse der VM erscheinen.
+   Steht dort „No Guest Agent configured“: VM → *Options* → **QEMU Guest Agent** einschalten
+   und die VM in Proxmox **Shutdown → Start** (ein Neustart aus Windows reicht nicht). In
+   Windows muss der Dienst **„QEMU Guest Agent“** laufen. **Ohne IP kann der Broker keine
+   RDP-Verbindung aufbauen** (Client hängt bei 50 %).
 5. Windows-Updates installieren, neu starten.
 
 ## Teil 3 – Windows für VDI vorbereiten

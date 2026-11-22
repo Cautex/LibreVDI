@@ -108,6 +108,7 @@ kontrollieren, dass nichts übrig bleibt.
 | `Permission check failed (/, Sys.Console)` | HA im Service aktiviert (Standard) | Service mit **HA: Disabled** neu anlegen |
 | `Item has associated deployed services` beim Löschen | Service hängt noch an einem Service Pool | zuerst den Pool löschen |
 | `Permission check failed (/vms/…, VM.GuestAgent.Audit…)`, Verbindung hängt bei 50 % | Rolle ohne Guest-Agent-Recht (PVE 9) | `pveum role modify LibreVDI --append 1 --privs VM.GuestAgent.Audit` (PVE 8: `VM.Monitor`) |
+| Proxmox zeigt bei der VM „No Guest Agent configured“, Verbindung hängt bei 50 % | QEMU Guest Agent in den VM-Optionen aus oder nicht installiert | *Options → QEMU Guest Agent* an, VM **Shutdown → Start**, Dienst „QEMU Guest Agent“ in Windows prüfen |
 | `Item changed by another administrator` beim Speichern | noch ungeklärt (siehe upstream-notes.md) | Seite neu laden; sonst Service neu anlegen |
 
 ## Was ich als Rückmeldung brauche
