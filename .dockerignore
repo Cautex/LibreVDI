@@ -1,0 +1,9 @@
+.git
+**/.git
+**/__pycache__
+**/*.pyc
+upstream/uds-actor
+upstream/uds-client
+upstream/broker/tests
+upstream/broker/doc
+.env
