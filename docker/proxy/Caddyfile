@@ -22,6 +22,8 @@
 	@internal path /healthz /readyz
 	respond @internal 404
 
+	redir /favicon.ico /uds/res/modern/img/favicon.ico
+
 	# Root certificate of Caddy's local CA (only exists with LIBREVDI_TLS=internal), so clients
 	# and VMs can import it without copying files:
 	#   curl.exe -k -o librevdi-ca.crt https://<domain>/ca.crt && certutil -addstore -f Root librevdi-ca.crt

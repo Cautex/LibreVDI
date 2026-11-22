@@ -1,3 +1,5 @@
 # Additional Python packages required by LibreVDI on top of upstream requirements.txt
 # PostgreSQL driver (upstream defaults to MySQL)
 psycopg[binary]>=3.2,<4
+# Translation catalogs (branding + compiling the upstream .po files at image build)
+polib>=1.2,<2

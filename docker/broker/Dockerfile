@@ -88,6 +88,9 @@ COPY docker/broker/settings.py /app/server/settings.py
 COPY docker/broker/librevdi_ext /app/librevdi_ext
 # LibreVDI broker plugins (auto-imported by upstream from uds/plugins/)
 COPY docker/broker/plugins/librevdi /app/uds/plugins/librevdi
+# Branding (logo, texts, translations), applied once below
+COPY branding/logo-*.png branding/logo.ico /opt/librevdi/branding/
+COPY docker/broker/branding/apply_branding.py /opt/librevdi/apply_branding.py
 COPY docker/broker/entrypoint.sh /usr/local/bin/librevdi-entrypoint
 
 RUN useradd --system --uid 10001 --home-dir /var/lib/uds --shell /usr/sbin/nologin uds \
@@ -96,6 +99,7 @@ RUN useradd --system --uid 10001 --home-dir /var/lib/uds --shell /usr/sbin/nolog
  && cd /app \
  && cp /app/uds/services/Proxmox/service.png /app/uds/plugins/librevdi/service.png \
  && LIBREVDI_BUILD=1 python manage.py collectstatic --noinput >/dev/null \
+ && python /opt/librevdi/apply_branding.py \
  && chmod -R a+rX /app \
  && mkdir -p /app/static/clients /app/uds/osmanagers/WindowsOsManager/files \
  && chown -R uds:uds /var/lib/uds /app/log /app/static/clients /app/uds/osmanagers/WindowsOsManager/files

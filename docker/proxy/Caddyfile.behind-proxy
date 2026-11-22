@@ -32,6 +32,8 @@
 	@internal path /healthz /readyz
 	respond @internal 404
 
+	redir /favicon.ico /uds/res/modern/img/favicon.ico
+
 	# No local CA in this mode: the outer proxy presents a publicly trusted certificate
 	respond /ca.crt 404
 
