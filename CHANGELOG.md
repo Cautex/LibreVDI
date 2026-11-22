@@ -5,6 +5,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 
 ## [Unreleased]
 
+### Fixed
+- Broker exhausted PostgreSQL connections ("too many clients", HTTP 500 in the admin UI)
+  under load: persistent DB connections (`CONN_MAX_AGE=60`) leak under ASGI because every
+  worker thread keeps its own connection. Now `0` (one connection per request, upstream
+  default); PostgreSQL `max_connections` raised to 200. Found in the first lab test.
+- Load test (`tests/load.sh`) added to CI to catch connection leaks.
+
 ### Added
 - Phase 0: evaluation of existing open-source VDI projects and decision document
   (`docs/00-entscheidung.md`): LibreVDI is a distribution based on OpenUDS 5.0.

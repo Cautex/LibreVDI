@@ -80,8 +80,10 @@ if not _TESTING:
             "PASSWORD": env.get_secret("LIBREVDI_DB_PASSWORD", required=True),
             "HOST": env.get("LIBREVDI_DB_HOST", "postgres"),
             "PORT": env.get("LIBREVDI_DB_PORT", "5432" if _engine == "postgresql" else "3306"),
-            "CONN_MAX_AGE": env.get_int("LIBREVDI_DB_CONN_MAX_AGE", 60),
-            "CONN_HEALTH_CHECKS": True,
+            # 0 = close the connection after each request (upstream default). Persistent
+            # connections must stay off under ASGI: every worker thread would keep its own
+            # connection open and PostgreSQL runs out of slots ("too many clients").
+            "CONN_MAX_AGE": env.get_int("LIBREVDI_DB_CONN_MAX_AGE", 0),
         }
         if _engine == "mysql":
             _default_db["OPTIONS"] = {"isolation_level": "read committed"}

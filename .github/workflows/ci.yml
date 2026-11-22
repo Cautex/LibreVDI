@@ -27,7 +27,7 @@ jobs:
           ruff check .
           ruff format --check .
       - name: shellcheck
-        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh tests/smoke.sh
+        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh tests/smoke.sh tests/load.sh
       - name: compose file
         run: |
           cp .env.example .env
@@ -75,6 +75,8 @@ jobs:
         run: docker compose up -d --no-build
       - name: Smoke test
         run: tests/smoke.sh
+      - name: Load test (DB connection handling)
+        run: tests/load.sh 30
       - name: Restart (idempotent init) and smoke test again
         run: |
           docker compose down

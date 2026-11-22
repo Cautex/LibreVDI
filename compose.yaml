@@ -26,6 +26,7 @@ x-broker: &broker
     LIBREVDI_DB_USER: ${POSTGRES_USER:-librevdi}
     LIBREVDI_DB_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     LIBREVDI_MEMCACHED: memcached:11211
+    LIBREVDI_DB_CONN_MAX_AGE: ${LIBREVDI_DB_CONN_MAX_AGE:-0}
     LIBREVDI_TIME_ZONE: ${LIBREVDI_TIME_ZONE:-Europe/Berlin}
     LIBREVDI_LANGUAGE: ${LIBREVDI_LANGUAGE:-de}
     LIBREVDI_LOG_LEVEL: ${LIBREVDI_LOG_LEVEL:-INFO}
@@ -41,6 +42,8 @@ services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
+    # headroom for web + task manager worker threads
+    command: ["postgres", "-c", "max_connections=${POSTGRES_MAX_CONNECTIONS:-200}"]
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-librevdi}
       POSTGRES_USER: ${POSTGRES_USER:-librevdi}
