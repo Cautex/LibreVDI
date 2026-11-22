@@ -42,6 +42,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Testanleitung Stand Phase 1](docs/test-phase1.md)
 - [Phase 2: persistenter Windows-Desktop](docs/test-phase2-windows.md)
 - [Tunnel (optional, pro Pool)](docs/tunnel.md)
+- [Signierte RDP-Dateien](docs/rdp-signing.md)
 - [Roadmap](docs/roadmap.md)
 - [Software Dritter / Lizenzen](THIRD_PARTY.md)
 

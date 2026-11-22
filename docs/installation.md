@@ -138,6 +138,8 @@ Zu sichern sind **beide**:
 docker compose exec -T postgres pg_dump -U librevdi librevdi | gzip > librevdi-db.sql.gz
 # Schlüssel (ohne sie sind verschlüsselte Felder, z. B. Hypervisor-Zugangsdaten, unlesbar)
 docker compose cp broker-web:/var/lib/uds/keys ./librevdi-keys
+# Signaturzertifikat für RDP-Dateien (siehe rdp-signing.md)
+docker compose cp broker-web:/var/lib/uds/rdp-signing ./librevdi-rdp-signing
 ```
 
 Schlüssel-Backup sicher und getrennt aufbewahren.

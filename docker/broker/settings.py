@@ -64,6 +64,10 @@ else:
     )
     RSA_KEY = env.get_secret("LIBREVDI_RSA_KEY", default_file=os.path.join(DATA_DIR, "keys", "rsa.pem"), required=True)
 
+# Certificate used to sign .rdp files (transport option "Sign RDP file"); PEM cert+key or PFX
+RDP_SIGN_CERT = env.get("LIBREVDI_RDP_SIGN_CERT") or os.path.join(DATA_DIR, "rdp-signing", "cert.pem")
+RDP_SIGN_KEY = env.get("LIBREVDI_RDP_SIGN_KEY") or os.path.join(DATA_DIR, "rdp-signing", "key.pem")
+
 # --- Databases -------------------------------------------------------------------------
 if not _TESTING:
     if _BUILDING:

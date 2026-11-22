@@ -35,3 +35,20 @@ def test_ensure_keys_skips_when_env_given(tmp_path, monkeypatch):
 def test_random_secret_unique():
     assert keys.random_secret() != keys.random_secret()
     assert len(keys.random_secret()) >= 64
+
+
+def test_rdp_signing_cert(tmp_path):
+    from cryptography import x509
+    from cryptography.x509.oid import ExtendedKeyUsageOID
+
+    target = tmp_path / "rdp-signing"
+    created = keys.ensure_rdp_signing_cert(str(target), "LibreVDI RDP signing (test)")
+    assert len(created) == 2
+    cert = x509.load_pem_x509_certificate((target / "cert.pem").read_bytes())
+    eku = cert.extensions.get_extension_for_class(x509.ExtendedKeyUsage).value
+    assert ExtendedKeyUsageOID.CODE_SIGNING in eku and ExtendedKeyUsageOID.SERVER_AUTH in eku
+    assert cert.public_key().key_size == 3072
+    assert stat.S_IMODE((target / "key.pem").stat().st_mode) == 0o600
+    assert len(keys.sha1_thumbprint(str(target / "cert.pem"))) == 40
+    # idempotent
+    assert keys.ensure_rdp_signing_cert(str(target), "other") == []

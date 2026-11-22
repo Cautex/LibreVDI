@@ -41,6 +41,7 @@ case "$cmd" in
   init)
     mkdir -p "$DATA_DIR/keys"
     python -m librevdi_ext.keys "$DATA_DIR/keys"
+    python -m librevdi_ext.rdp_signing init
     wait_for_db
     log "applying database migrations"
     python manage.py migrate --noinput
@@ -50,6 +51,7 @@ case "$cmd" in
     ;;
   web)
     python -m librevdi_ext.downloads
+    python -m librevdi_ext.rdp_signing publish
     exec daphne -b 0.0.0.0 -p "${LIBREVDI_PORT:-8000}" --proxy-headers \
       --access-log - server.asgi:application "$@"
     ;;
