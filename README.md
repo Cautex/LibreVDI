@@ -39,6 +39,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Architekturentscheidungen (ADR)](docs/adr/README.md)
 - [Installation](docs/installation.md)
 - [Hinweise zu Upstream](docs/upstream-notes.md)
+- [Testanleitung Stand Phase 1](docs/test-phase1.md)
 - [Software Dritter / Lizenzen](THIRD_PARTY.md)
 
 ## Lizenz
