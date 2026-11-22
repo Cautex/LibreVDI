@@ -2,11 +2,16 @@
 
 | | |
 |---|---|
-| **Status** | Vorschlag, wartet auf Freigabe (Ende Phase 0) |
+| **Status** | **Entschieden (22.11.2026): Option A2 – Distribution auf Basis von OpenUDS 5.0.** Siehe [ADR-0001](adr/0001-basis-openuds-distribution.md) bis [ADR-0005](adr/0005-sprachen.md). |
 | **Stand der Recherche** | 21.11.2026 |
 | **Methode** | Repos geklont und gelesen (Lizenzdatei, Git-Historie der letzten 12 Monate, Struktur, Stichproben im Code), ergänzend GitHub-Suche. Nur offener Quellcode, keine proprietären Binaries. |
 
-## 1. Kurzfassung
+> **Ergebnis der Rückfragen (22.11.2026):** Option **A2** (LibreVDI als Distribution auf
+> OpenUDS **v5.0**), Lizenz **BSD-3-Clause**, Mandantenfähigkeit später per Instanz pro Mandant,
+> MVP-Client: Portal + `.rdp`/Launcher, Name **LibreVDI**. Die Empfehlung „Option C“ in den
+> Abschnitten 1–6 ist damit überholt und bleibt nur zur Nachvollziehbarkeit stehen.
+
+## 1. Kurzfassung (ursprünglicher Vorschlag)
 
 **Empfehlung: Option C (Hybrid).** Wir bauen einen eigenen, schlanken Broker und einen eigenen Agent, die genau auf Proxmox und unsere Anforderungen zugeschnitten sind. Für alles, was es schon gut und offen lizenziert gibt, bauen wir nichts selbst: RDP-Gateway, HTML5-Gateway, RDP-Clients, Proxmox-API-Bibliothek, Gast-Personalisierung. openUDS dient als Referenz für bewährte Konzepte (Warm-Pool-Cache, Publikationen, OS-Manager). Wegen der BSD-3-Lizenz dürfen wir dort einzelne Teile mit Namensnennung übernehmen.
 
