@@ -13,10 +13,17 @@ Benutzer-PC                    Docker-Host (LibreVDI)          Proxmox
 └──────────────┘                 └── Broker → Agent (43910) ──►└───────────────────┘
 ```
 
-**Netzwerk-Voraussetzungen**
-- Benutzer-PC und VM lösen `LIBREVDI_DOMAIN` auf und erreichen den Docker-Host auf Port 443.
-- Docker-Host erreicht die VM auf TCP **43910** (Agent).
-- Benutzer-PC erreicht die VM auf TCP **3389** (RDP direkt, ohne Tunnel; Tunnel folgt später).
+**Netzwerk-Voraussetzungen** (bei getrennten VLANs als Firewall-Regeln anlegen)
+
+| Von | Nach | Port | Wofür |
+|---|---|---|---|
+| Benutzer-PCs, VDI-VMs | LibreVDI (bzw. Reverse Proxy) | TCP 443 | Portal, Client, Agent → Broker |
+| Docker-Host (LibreVDI) | VDI-VMs | **TCP 3389** | Broker prüft vor jeder Verbindung, ob RDP erreichbar ist (sonst hängt der Client bei **75 %**) |
+| Docker-Host (LibreVDI) | VDI-VMs | **TCP 43910** | Broker → Agent |
+| Benutzer-PCs | VDI-VMs | TCP + UDP 3389 | RDP-Sitzung direkt (entfällt später mit dem Tunnel) |
+
+Beide Rechner müssen `LIBREVDI_DOMAIN` auflösen. In der VM das Windows-Netzwerkprofil auf
+**Privat** stellen (`Set-NetConnectionProfile -NetworkCategory Private`).
 
 ---
 
