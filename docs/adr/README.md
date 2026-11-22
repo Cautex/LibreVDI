@@ -10,3 +10,4 @@ nicht nachträglich umgeschrieben, sondern durch einen neuen ADR ersetzt („Ers
 | [0003](0003-container-betrieb.md) | Betrieb als Docker-Compose-Stack mit PostgreSQL | angenommen |
 | [0004](0004-mandantenfaehigkeit.md) | Mandantenfähigkeit: eine Instanz pro Mandant, später | angenommen |
 | [0005](0005-sprachen.md) | Programmiersprachen | angenommen |
+| [0006](0006-persistente-zuordnung-plugin.md) | Persistente Zuordnung über ein LibreVDI-Plugin | angenommen |

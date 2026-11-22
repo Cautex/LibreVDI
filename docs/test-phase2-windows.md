@@ -99,7 +99,10 @@ powercfg /change monitor-timeout-ac 0
 
 In der Admin-Oberfläche (`/uds/adm/`):
 
-1. **Services → Providers → pve → Services → New → „Proxmox Fixed Machines“**
+1. **Services → Providers → pve → Services → New → „Proxmox Persistent Desktops (LibreVDI)“**
+   - Dieser LibreVDI-Typ hält die Zuordnung Benutzer ↔ VM dauerhaft fest. Der Upstream-Typ
+     „Proxmox Fixed Machines“ gibt die VM dagegen bei jeder Windows-Abmeldung frei (Status
+     *Removed*), und der Benutzer bekommt beim nächsten Mal irgendeine freie VM.
    - Name: `Windows 11 persistent`
    - Resource Pool: `librevdi-persistent` – die Liste *Machines* zeigt nur VMs aus diesem
      Proxmox-Pool. Fehlt die VM: in Proxmox unter *Pools → librevdi-persistent → Members → Add*
@@ -120,6 +123,10 @@ In der Admin-Oberfläche (`/uds/adm/`):
    - Name: `Mein Windows-Desktop`, Service: `Windows 11 persistent`
    - OS Manager: keiner (wird für feste Maschinen nicht benötigt)
    - danach im Pool: Reiter **Groups → Add** `vdi-users`, Reiter **Transports → Add** `RDP direkt`
+
+**Zuordnung verwalten:** Beim ersten Klick eines Benutzers bekommt er eine freie VM aus der
+Liste und behält sie. Vorab zuweisen: Pool → *Assigned services* → **Assign service**. Freigeben
+(z. B. bei Mitarbeiterwechsel): dort den Eintrag löschen – die VM selbst bleibt erhalten.
 
 ## Teil 5 – Agent in der VM installieren und registrieren
 

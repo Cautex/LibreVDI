@@ -86,12 +86,15 @@ COPY upstream/broker/src /app
 # LibreVDI additions: settings overlay and helpers (later also plugins)
 COPY docker/broker/settings.py /app/server/settings.py
 COPY docker/broker/librevdi_ext /app/librevdi_ext
+# LibreVDI broker plugins (auto-imported by upstream from uds/plugins/)
+COPY docker/broker/plugins/librevdi /app/uds/plugins/librevdi
 COPY docker/broker/entrypoint.sh /usr/local/bin/librevdi-entrypoint
 
 RUN useradd --system --uid 10001 --home-dir /var/lib/uds --shell /usr/sbin/nologin uds \
  && mkdir -p /var/lib/uds /app/log \
  && chmod 0755 /usr/local/bin/librevdi-entrypoint \
  && cd /app \
+ && cp /app/uds/services/Proxmox/service.png /app/uds/plugins/librevdi/service.png \
  && LIBREVDI_BUILD=1 python manage.py collectstatic --noinput >/dev/null \
  && chmod -R a+rX /app \
  && mkdir -p /app/static/clients /app/uds/osmanagers/WindowsOsManager/files \

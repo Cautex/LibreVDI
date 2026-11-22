@@ -93,6 +93,18 @@ else
   fail=1
 fi
 
+# LibreVDI broker plugins are loaded
+if docker compose exec -T broker-web python -c '
+import django; django.setup()
+from uds.services.Proxmox.provider import ProxmoxProvider
+assert any(t.type_type == "LibreVDIProxmoxPersistentService" for t in ProxmoxProvider.offers)
+' >/dev/null 2>&1; then
+  echo "ok    plugin 'Proxmox Persistent Desktops' registered"
+else
+  echo "FAIL  plugin 'Proxmox Persistent Desktops' not registered"
+  fail=1
+fi
+
 # Container health (healthchecks may still be in their start period)
 for svc in broker-web broker-tasks postgres; do
   state=""
