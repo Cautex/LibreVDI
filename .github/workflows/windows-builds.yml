@@ -18,7 +18,8 @@ permissions:
 
 concurrency:
   group: windows-${{ github.ref }}
-  cancel-in-progress: true
+  # long first builds (FreeRDP, FFmpeg): queue new runs instead of cancelling them
+  cancel-in-progress: false
 
 jobs:
   agent:
@@ -119,6 +120,16 @@ jobs:
           Get-ChildItem "$env:FREERDP_ROOT\bin\*.dll" | Copy-Item -Destination out
           Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows\bin\*.dll" | Copy-Item -Destination out
           Get-ChildItem out | Format-Table Name, Length
+      - name: Build installer (NSIS)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
+            choco install nsis -y --no-progress
+            $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
+          }
+          makensis /V2 /DVERSION=0.1.0-dev.${{ github.run_number }} packaging\windows\client.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Move-Item packaging\windows\LibreVDI-Client-Setup-*.exe out\
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-client-windows-x64
