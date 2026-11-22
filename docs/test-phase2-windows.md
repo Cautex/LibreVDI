@@ -58,7 +58,7 @@ Als Administrator in PowerShell:
 # Remotedesktop einschalten (mit Network Level Authentication) und Firewall freigeben
 Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
 Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name UserAuthentication -Value 1
-Enable-NetFirewallRule -DisplayGroup '@FirewallAPI.dll,-28752'   # Gruppe "Remotedesktop"
+Enable-NetFirewallRule -Group '@FirewallAPI.dll,-28752'   # Regelgruppe "Remotedesktop" (sprachunabhängig)
 
 # Kein Ruhezustand / Standby (sonst ist die VM für Broker und RDP nicht erreichbar)
 powercfg /hibernate off
