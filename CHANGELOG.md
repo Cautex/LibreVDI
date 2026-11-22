@@ -10,6 +10,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   installers) and LibreVDI Client (OpenUDS launcher with FreeRDP, FFmpeg, OpenSSL runtime DLLs,
   installer registering `udssv2://`). Native client dependencies are cached.
 - Guide for a persistent Windows 11 Pro desktop on Proxmox (`docs/test-phase2-windows.md`).
+- Root CA download at `/ca.crt` (internal TLS) and operation behind an existing reverse proxy
+  (`LIBREVDI_PROXY_CONFIG=Caddyfile.behind-proxy`, trusted client IPs).
+- Windows installers offered by LibreVDI itself (portal "Launcher" for users, agent downloads for
+  admins) from `downloads/`, fetched with `tools/fetch-windows-builds.sh`.
+
+### Milestone
+- **Phase 2 MVP reached in the lab (22.11.2026):** user logs in to the portal, selects the
+  persistent Windows 11 Pro desktop, LibreVDI Client opens the RDP session (Proxmox VE 9.2).
+
+### Fixed (from the Phase 2 lab test)
+- Agent/client no longer need the Visual C++ runtime on fresh Windows (static CRT / app-local DLLs,
+  CI checks DLL dependencies).
+- Documented Proxmox privilege `VM.GuestAgent.Audit` (PVE 9), QEMU guest agent requirement and the
+  firewall matrix (broker -> VM TCP 3389/43910).
 
 ### Fixed
 - Broker exhausted PostgreSQL connections ("too many clients", HTTP 500 in the admin UI)
