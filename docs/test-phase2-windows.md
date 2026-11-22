@@ -68,13 +68,19 @@ powercfg /change monitor-timeout-ac 0
 
 - **Testbenutzer:** einen lokalen Benutzer anlegen (z. B. `vdi-test`) und zur Gruppe
   **Remotedesktopbenutzer** hinzufügen (Administratoren dürfen ohnehin).
-- **Zertifikat** (nur bei `LIBREVDI_TLS=internal`): Die Caddy-Root-CA auf dem Docker-Host
-  exportieren (siehe [installation.md](installation.md), Abschnitt 4), in die VM kopieren und
-  als Administrator importieren:
+- **Zertifikat** (nur bei `LIBREVDI_TLS=internal`): LibreVDI liefert seine Root-CA selbst aus.
+  In der VM als Administrator (PowerShell oder Eingabeaufforderung):
   ```powershell
-  certutil -addstore -f Root C:\Temp\librevdi-root-ca.crt
+  curl.exe -k -o $env:TEMP\librevdi-ca.crt https://<LIBREVDI_DOMAIN>/ca.crt
+  certutil -addstore -f Root $env:TEMP\librevdi-ca.crt
   ```
+  `-k` ist hier nötig, weil der Rechner der CA ja noch nicht vertraut. Wer sichergehen will,
+  vergleicht den Fingerabdruck (`certutil -dump $env:TEMP\librevdi-ca.crt`, Zeile
+  „Zertifikathash(sha256)“) mit dem auf dem Docker-Host:
+  `docker compose exec proxy cat /data/caddy/pki/authorities/local/root.crt | openssl x509 -noout -fingerprint -sha256`.
   Danach muss `https://<LIBREVDI_DOMAIN>/` im Edge der VM **ohne** Zertifikatswarnung öffnen.
+  Mit einem öffentlich gültigen Zertifikat (Let's Encrypt, siehe installation.md) entfällt
+  dieser Schritt ganz.
 
 ## Teil 4 – Persistenten Pool im Broker anlegen
 
@@ -119,7 +125,7 @@ In der Admin-Oberfläche (`/uds/adm/`):
 1. Aus dem neuesten Lauf „Windows builds (agent + client)“ das Artefakt
    **`librevdi-client-windows-x64`** herunterladen und entpacken.
 2. Bei `LIBREVDI_TLS=internal`: Root-CA wie in Teil 3 auch auf dem **Benutzer-PC** importieren
-   (`certutil -addstore -f Root librevdi-root-ca.crt` als Administrator).
+   (die zwei Befehle mit `curl.exe` und `certutil`, als Administrator).
 3. **`LibreVDI-Client-Setup-….exe`** als Administrator installieren. Er landet unter
    `C:\Program Files\LibreVDI\Client` und registriert Links vom Typ `udssv2://`.
 4. Im Browser `https://<LIBREVDI_DOMAIN>/` öffnen → Authenticator **„Lokal“** wählen →

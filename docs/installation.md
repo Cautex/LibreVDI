@@ -61,12 +61,24 @@ Test: `tests/smoke.sh` prüft Seiten, Login und Container-Health.
 `https://<LIBREVDI_DOMAIN>/` öffnen, mit `root` und dem Passwort aus `.env` anmelden.
 Die Verwaltung erreicht man über das Benutzermenü oder direkt unter `/uds/adm/`.
 
-Bei `LIBREVDI_TLS=internal` warnt der Browser vor dem Zertifikat. Die Root-CA liegt im
-Caddy-Volume und kann auf den Clients importiert werden:
+Bei `LIBREVDI_TLS=internal` warnt der Browser vor dem Zertifikat. LibreVDI liefert die Root-CA
+unter `https://<LIBREVDI_DOMAIN>/ca.crt` aus. Import auf Windows (als Administrator):
+
+```powershell
+curl.exe -k -o $env:TEMP\librevdi-ca.crt https://<LIBREVDI_DOMAIN>/ca.crt
+certutil -addstore -f Root $env:TEMP\librevdi-ca.crt
+```
+
+Alternativ direkt vom Docker-Host kopieren:
 
 ```bash
 docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt ./librevdi-root-ca.crt
 ```
+
+Ohne jeden Import geht es mit einem öffentlich gültigen Zertifikat: `LIBREVDI_TLS` auf eine
+E-Mail-Adresse setzen (Let's Encrypt, DNS-Name muss öffentlich auflösbar und Port 80/443 von
+außen erreichbar sein) oder LibreVDI hinter einen vorhandenen Reverse Proxy mit gültigem
+Zertifikat stellen.
 
 ## 5. Empfohlene Härtung nach der Einrichtung
 

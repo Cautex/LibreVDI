@@ -63,6 +63,9 @@ done
 expect_status /uds/page/login 200
 expect_redirect /uds/adm/ /uds/page/login  # admin UI requires login
 expect_status /uds/res/admin/main.js 200
+if [[ "${LIBREVDI_TLS:-internal}" == "internal" ]]; then
+  expect_status /ca.crt 200  # root CA download for clients/VMs
+fi
 expect_status /healthz 404
 expect_status /readyz 404
 
