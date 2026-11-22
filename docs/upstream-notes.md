@@ -25,7 +25,18 @@ DNS-Fehler), endet **jeder Login** mit einem internen Serverfehler (Fehlerseite 
 - **Vorschlag Upstream:** bei nicht erreichbarem Zeitstempeldienst den Eintrag ohne Stempel
   schreiben und später nachstempeln, statt den Login abzubrechen.
 
-## 3. Kleinere Punkte
+## 3. Proxmox-Service bietet ungeeignete Storages an
+
+Die Storage-Auswahl im Service „Proxmox Clone“ (`services/Proxmox/helpers.py`, `get_storage`)
+listet alle Storages des Knotens, ohne nach dem Inhaltstyp `images` zu filtern; geteilte
+Storages stehen zuerst. Dadurch werden z. B. Proxmox-Backup-Server-Storages (Typ `pbs`)
+angeboten und sogar vorausgewählt. Die Publikation scheitert dann mit
+`storage '…' does not support vm images` (im Lab-Test am 22.11.2026 beobachtet).
+
+- **Vorschlag Upstream:** `list_storages(node=…, content="images")` verwenden; zusätzlich in
+  `StorageInfo.supports_linked_clone()` Typen ohne VM-Images (z. B. `pbs`) ausschließen.
+
+## 4. Kleinere Punkte
 
 - Der Quickstart (`doc/source/quickstart`) beschreibt noch den Python-Tunnel und MySQL;
   in 5.0 ist der Tunnel in Rust.
