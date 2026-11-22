@@ -1,0 +1,128 @@
+# LibreVDI – single-instance stack
+#
+#   cp .env.example .env   # fill in the placeholders
+#   docker compose up -d
+#
+# Services:
+#   postgres      database
+#   memcached     shared cache between web and task manager
+#   broker-init   one-shot: keys, DB migrations, super user password
+#   broker-web    web portal, admin UI and REST API (port 8000, internal)
+#   broker-tasks  background jobs (warm pool, cleanup, timeouts)
+#   proxy         Caddy reverse proxy with TLS (ports 80/443)
+
+name: librevdi
+
+x-broker: &broker
+  image: ${LIBREVDI_BROKER_IMAGE:-librevdi-broker:local}
+  build:
+    context: .
+    dockerfile: docker/broker/Dockerfile
+  restart: unless-stopped
+  environment: &broker-env
+    LIBREVDI_PUBLIC_URL: https://${LIBREVDI_DOMAIN:?set LIBREVDI_DOMAIN in .env}
+    LIBREVDI_DB_HOST: postgres
+    LIBREVDI_DB_NAME: ${POSTGRES_DB:-librevdi}
+    LIBREVDI_DB_USER: ${POSTGRES_USER:-librevdi}
+    LIBREVDI_DB_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    LIBREVDI_MEMCACHED: memcached:11211
+    LIBREVDI_TIME_ZONE: ${LIBREVDI_TIME_ZONE:-Europe/Berlin}
+    LIBREVDI_LANGUAGE: ${LIBREVDI_LANGUAGE:-de}
+    LIBREVDI_LOG_LEVEL: ${LIBREVDI_LOG_LEVEL:-INFO}
+    LIBREVDI_LOG_FORMAT: ${LIBREVDI_LOG_FORMAT:-text}
+    # The bundled Caddy forwards client addresses; only trust the internal network
+    LIBREVDI_BEHIND_PROXY: "1"
+    LIBREVDI_PROXY_NETWORKS: ${LIBREVDI_BACKEND_SUBNET:-172.30.231.0/24}
+  volumes:
+    - broker-data:/var/lib/uds
+  networks: [backend]
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-librevdi}
+      POSTGRES_USER: ${POSTGRES_USER:-librevdi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  memcached:
+    image: memcached:1.6-alpine
+    restart: unless-stopped
+    command: ["memcached", "-m", "128"]
+    networks: [backend]
+
+  broker-init:
+    <<: *broker
+    restart: "no"
+    command: ["init"]
+    environment:
+      <<: *broker-env
+      LIBREVDI_ROOT_USER: ${LIBREVDI_ROOT_USER:-root}
+      LIBREVDI_ROOT_PASSWORD: ${LIBREVDI_ROOT_PASSWORD:?set LIBREVDI_ROOT_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  broker-web:
+    <<: *broker
+    command: ["web"]
+    depends_on:
+      broker-init:
+        condition: service_completed_successfully
+      memcached:
+        condition: service_started
+
+  broker-tasks:
+    <<: *broker
+    command: ["tasks"]
+    healthcheck:
+      test: ["CMD", "python", "-m", "librevdi_ext.healthcheck", "--tasks"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      broker-init:
+        condition: service_completed_successfully
+      memcached:
+        condition: service_started
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      LIBREVDI_DOMAIN: ${LIBREVDI_DOMAIN}
+      LIBREVDI_TLS: ${LIBREVDI_TLS:-internal}
+    ports:
+      - "${LIBREVDI_HTTP_PORT:-80}:80"
+      - "${LIBREVDI_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      broker-web:
+        condition: service_healthy
+    networks: [backend, frontend]
+
+volumes:
+  postgres-data:
+  broker-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  backend:
+    ipam:
+      config:
+        - subnet: ${LIBREVDI_BACKEND_SUBNET:-172.30.231.0/24}
+  frontend:

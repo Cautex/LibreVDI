@@ -1,0 +1,26 @@
+# LibreVDI reverse proxy (Caddy)
+#
+# LIBREVDI_TLS:
+#   internal               self-signed certificate from Caddy's local CA (lab / LAN)
+#   you@example.com        automatic Let's Encrypt certificate (public DNS name required)
+{
+	admin off
+}
+
+{$LIBREVDI_DOMAIN} {
+	tls {$LIBREVDI_TLS}
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+
+	# Health endpoints are for container checks only
+	@internal path /healthz /readyz
+	respond @internal 404
+
+	reverse_proxy broker-web:8000
+}
