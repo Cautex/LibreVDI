@@ -49,6 +49,7 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 - **LibreVDI Desktop-App für Windows** (wie der native Horizon Client): Server eintragen,
   anmelden, Desktops als Liste, Doppelklick verbindet – ohne Browser. Vorher prüfen, welche
   Broker-API dafür nutzbar ist (Spike), dann eigene App auf Basis der Upstream-Rust-Bausteine.
-- Navigation und Aufbau der Admin-Oberfläche überarbeiten (eigenes Thema, später)
+- Navigation, Übersichten und Wording der Admin-Oberfläche überarbeiten (z. B. „Zugewiesene
+  Dienste“: verständliche Spalten und Status, Actor-Version) – eigenes Thema, später
 - Härtung, MFA/OIDC
 - Upstream-Beiträge aus `docs/upstream-notes.md`

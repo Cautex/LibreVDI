@@ -10,6 +10,7 @@ Per service "Proxmox Persistent Desktops (LibreVDI)", tab "Power":
 Starting a stopped machine when its user connects is upstream behaviour (``set_ready`` of fixed
 machines) and works with every policy. A job checks all services of this type every two minutes.
 Disconnected sessions (RDP window closed without logoff) count as "in use" and are left alone.
+Nothing happens while the provider is in maintenance mode (e.g. while an admin works on the VMs).
 """
 
 from __future__ import annotations
@@ -81,6 +82,8 @@ def _job_class() -> type:
                     logger.exception("librevdi: power policy failed for service %s", service_model.name)
 
         def _apply(self, service_model: typing.Any) -> None:
+            if service_model.provider.maintenance_mode:  # like upstream: no automatic actions
+                return
             service = service_model.get_instance()
             policy = service.power_policy.value
             if policy not in (POLICY_SHUTDOWN, POLICY_ALWAYS_ON):

@@ -46,6 +46,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Installers close a running client (with confirmation) or agent helpers before updating files;
+  the power policy pauses while the provider is in maintenance mode.
 
 ### Fixed (from the Phase 2b lab test)
 - Persistent desktops: assignments were still released after about 10 minutes by the upstream

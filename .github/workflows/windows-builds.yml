@@ -83,7 +83,7 @@ jobs:
           }
           $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
           foreach ($variant in @("unmanaged", "managed")) {
-            makensis /V2 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
+            makensis /V2 /INPUTCHARSET UTF8 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
               /DVARIANT=$variant "/DNOTICES=$notices" packaging\windows\agent.nsi
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
@@ -194,7 +194,7 @@ jobs:
             $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
           }
           $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
-          makensis /V2 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
+          makensis /V2 /INPUTCHARSET UTF8 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
             "/DNOTICES=$notices" packaging\windows\client.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Move-Item packaging\windows\LibreVDI-Client-Setup-*.exe out\

@@ -69,6 +69,10 @@ Section "Agent"
   ; stop a running agent (this or an older version) so its files can be replaced
   nsExec::Exec 'sc.exe stop LibreVDIAgent'
   nsExec::Exec 'sc.exe stop UDSActorService'
+  ; helpers running in user sessions lock their files as well (restarted at the next login)
+  nsExec::Exec 'taskkill.exe /F /IM udsactor-client.exe'
+  nsExec::Exec 'taskkill.exe /F /IM gui-helper.exe'
+  nsExec::Exec 'taskkill.exe /F /IM udsactor-config.exe'
   Sleep 3000
   SetOutPath $INSTDIR
   File /oname=librevdi.ico "..\..\branding\logo.ico"

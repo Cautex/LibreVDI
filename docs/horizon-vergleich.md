@@ -55,6 +55,10 @@ und wartet, bis der Agent bereit ist (etwa 1–2 Minuten). Nur *getrennte* Sitzu
 geschlossen ohne Abmelden) gelten weiter als „in Benutzung“ und werden nicht heruntergefahren.
 Die Prüfung läuft alle zwei Minuten; die Aktionen stehen im Log des Dienstes bzw. der Zuweisung.
 
+**Wartung an den VMs** (z. B. Agent aktualisieren über die Proxmox-Konsole): den **Anbieter in den
+Wartungsmodus** setzen (Dienste → Anbieter → Wartung). Solange greift die Energie-Richtlinie nicht
+und Benutzer können sich nicht verbinden – wie der Wartungsmodus bei Horizon.
+
 Benötigt das Proxmox-Recht `VM.PowerMgmt` (in der Rolle aus [test-phase1.md](test-phase1.md) enthalten).
 
 ## Was (noch) fehlt

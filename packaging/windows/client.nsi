@@ -60,6 +60,17 @@ Function .onInit
 FunctionEnd
 
 Section "Client"
+  ; a running client (open connection or window) locks launcher.exe and its DLLs
+  nsExec::ExecToStack 'cmd.exe /c tasklist /FI "IMAGENAME eq launcher.exe" /NH | find /I "launcher.exe"'
+  Pop $0
+  Pop $1
+  ${If} $0 == 0
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Der LibreVDI Client läuft noch und wird für das Update beendet. Offene Verbindungen werden getrennt.$\r$\n$\r$\nLibreVDI Client is still running and will be closed for the update. Open connections will be disconnected." IDOK close_client
+    Abort
+    close_client:
+    nsExec::Exec 'taskkill.exe /F /IM launcher.exe'
+    Sleep 1500
+  ${EndIf}
   SetOutPath $INSTDIR
   File "${SRCDIR}\launcher.exe"
   File /oname=librevdi.ico "..\..\branding\logo.ico"
