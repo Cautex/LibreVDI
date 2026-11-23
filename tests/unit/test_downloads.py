@@ -64,3 +64,43 @@ def test_publish_client_removes_other_versions(tmp_path):
     downloads.publish(str(src), str(app), "5.0.0")
 
     assert [p.name for p in (app / "static/clients").iterdir()] == ["LibreVDI-Client-Setup-0.2.0.exe"]
+
+
+def test_newest_prefers_highest_version_over_mtime(tmp_path):
+    names = [
+        "LibreVDI-Client-Setup-0.1.0-dev.8.exe",
+        "LibreVDI-Client-Setup-0.1.0-dev.12.exe",
+        "LibreVDI-Client-Setup-0.1.0-dev.10.exe",
+    ]
+    for i, name in enumerate(names):
+        f = tmp_path / name
+        f.write_bytes(b"x")
+        os.utime(f, (1000 - i, 1000 - i))  # dev.10 is the most recently modified one
+    os.utime(tmp_path / names[2], (5000, 5000))
+    assert os.path.basename(downloads.newest(str(tmp_path / "LibreVDI-Client-Setup-*.exe"))) == names[1]
+
+
+def test_version_key_release_beats_prerelease(tmp_path):
+    rc = tmp_path / "LibreVDI-Client-Setup-0.2.0-rc.1.exe"
+    final = tmp_path / "LibreVDI-Client-Setup-0.2.0.exe"
+    dev = tmp_path / "LibreVDI-Client-Setup-0.1.0-dev.99.exe"
+    for f in (rc, final, dev):
+        f.write_bytes(b"x")
+    assert downloads.newest(str(tmp_path / "*.exe")) == str(final)
+    assert downloads.version_key(str(rc)) > downloads.version_key(str(dev))
+
+
+def test_publish_writes_manifest(tmp_path):
+    src = tmp_path / "downloads"
+    app = tmp_path / "app"
+    src.mkdir()
+    (src / "LibreVDI-Agent-unmanaged-Setup-0.1.0-dev.12.exe").write_bytes(b"a")
+    downloads.publish(str(src), str(app), "5.0.0")
+    import json
+
+    manifest = json.loads((app / "static/librevdi/installers.json").read_text())
+    assert manifest == {
+        "uds/osmanagers/WindowsOsManager/files/UDSActorUnmanagedSetup-5.0.0.exe": (
+            "LibreVDI-Agent-unmanaged-Setup-0.1.0-dev.12.exe"
+        )
+    }

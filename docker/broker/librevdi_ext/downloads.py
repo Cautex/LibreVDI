@@ -14,6 +14,7 @@ Missing files are skipped. Runs once when the web container starts.
 """
 
 import glob
+import json
 import os
 import re
 import shutil
@@ -41,9 +42,26 @@ def upstream_version(version_file: str = VERSION_FILE) -> str:
     return match.group(1)
 
 
+_VERSION_RE = re.compile(r"-Setup-(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?\.exe$")
+
+
+def version_key(path: str) -> tuple:
+    """Sort key: highest version wins (0.2.0 > 0.2.0-rc.1 > 0.1.0-dev.12 > 0.1.0-dev.8), then mtime."""
+    match = _VERSION_RE.search(os.path.basename(path))
+    if not match:
+        return ((), 0, (), os.path.getmtime(path))
+    release = tuple(int(x) for x in match.group(1).split("."))
+    pre = match.group(2)
+    pre_nums = tuple(int(x) for x in re.findall(r"\d+", pre)) if pre else ()
+    return (release, 0 if pre else 1, pre_nums, os.path.getmtime(path))
+
+
 def newest(pattern: str) -> str | None:
     files = glob.glob(pattern)
-    return max(files, key=os.path.getmtime) if files else None
+    return max(files, key=version_key) if files else None
+
+
+MANIFEST = "static/librevdi/installers.json"  # target path (relative to /app) -> published file name
 
 
 BUNDLED_DIR = "/opt/librevdi/bundled-downloads"
@@ -66,6 +84,10 @@ def publish(source_dirs: str | list[str], app_dir: str, version: str) -> list[tu
                     os.remove(stale)
         shutil.copyfile(src, dst)
         published.append((os.path.basename(src), dst))
+    manifest = os.path.join(app_dir, MANIFEST)
+    os.makedirs(os.path.dirname(manifest), exist_ok=True)
+    with open(manifest, "w", encoding="utf-8") as f:
+        json.dump({os.path.relpath(dst, app_dir): name for name, dst in published}, f, indent=1)
     return published
 
 

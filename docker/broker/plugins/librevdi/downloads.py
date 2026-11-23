@@ -11,6 +11,7 @@ server starts, so the file checks here see the final state.
 
 import dataclasses
 import glob
+import json
 import os
 import re
 
@@ -40,16 +41,28 @@ def _static_file(url: str) -> str:
     return os.path.join(settings.STATIC_ROOT, rel)
 
 
+def _published_names() -> dict[str, str]:
+    """Real installer file names (with LibreVDI version), written by librevdi_ext.downloads."""
+    app = os.path.dirname(os.path.abspath(settings.STATIC_ROOT))  # /app
+    try:
+        with open(os.path.join(settings.STATIC_ROOT, "librevdi", "installers.json"), encoding="utf-8") as f:
+            return {os.path.normpath(os.path.join(app, k)): v for k, v in json.load(f).items()}
+    except (OSError, ValueError):
+        return {}
+
+
 def apply() -> None:
     manager = downloads_manager()
     table = getattr(manager, "_downloadables", None)
+    names = _published_names()
     if isinstance(table, dict):
         for key in list(table):
             item = table[key]
             if not os.path.isfile(item.path):
                 del table[key]
                 continue
-            item.name = _rebrand(item.name, _NAME_MAP)
+            real_name = names.get(os.path.normpath(item.path))
+            item.name = real_name or _rebrand(item.name, _NAME_MAP)
             item.description = _rebrand(item.description, _TEXT_MAP)
 
     clients = sorted(glob.glob(os.path.join(settings.STATIC_ROOT, "clients", "LibreVDI-Client-Setup-*.exe")))

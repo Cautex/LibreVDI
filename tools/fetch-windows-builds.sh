@@ -19,6 +19,7 @@ API="https://api.github.com/repos/${REPO}"
 
 if [[ -n "${RELEASE:-}" ]]; then
   mkdir -p "$DEST"
+  find "$DEST" -maxdepth 1 -name 'LibreVDI-*-Setup-*.exe' -delete
   echo "== release ${RELEASE}"
   curl -fsSL "${API}/releases/tags/${RELEASE}" |
     python3 -c 'import json,sys
@@ -65,6 +66,10 @@ for a in json.load(sys.stdin)["artifacts"]:
   done
 
 mkdir -p "$DEST"
+if find "$tmp" -name 'LibreVDI-*-Setup-*.exe' | grep -q .; then
+  # keep only the version being fetched (older installers would just pile up)
+  find "$DEST" -maxdepth 1 -name 'LibreVDI-*-Setup-*.exe' -delete
+fi
 found=0
 while IFS= read -r -d '' f; do
   cp -f "$f" "$DEST/"

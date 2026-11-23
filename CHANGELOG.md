@@ -46,6 +46,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Downloads: the highest installer version wins (not the newest file date), admin downloads show
+  the real file name incl. version, `fetch-windows-builds.sh` removes older installers.
 - Installers move files that are still in use aside (renamed, deleted after reboot) instead of
   failing with "error overwriting launcher.exe"; CI compiles the installer scripts on Linux.
 - Installers close a running client (with confirmation) or agent helpers before updating files;
