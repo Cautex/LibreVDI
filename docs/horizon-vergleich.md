@@ -27,7 +27,7 @@ Omnissa Horizon, die Logik ist aber sehr ähnlich. Diese Seite übersetzt Begrif
 
 | Horizon-Pool | Zuweisung | LibreVDI-Dienst | OS-Manager | Stand |
 |---|---|---|---|---|
-| Manuell (vorhandene VMs) | **dedicated** | Proxmox Persistent Desktops (LibreVDI) | keiner | ✅ |
+| Manuell (vorhandene VMs) | **dedicated** | Proxmox Persistent Desktops (LibreVDI); *Automatic assignment* an/aus, Zuweisung per „Service zuweisen“ | keiner | ✅ |
 | Manuell (vorhandene VMs) | **floating** | Proxmox Fixed Machines | keiner | ✅ |
 | Automatisiert (Klone) | **floating** | Proxmox Linked Clone | Windows, „bei Abmeldung entfernen“ | Phase 3 |
 | Automatisiert (Klone) | **dedicated** | Proxmox Linked Clone | Windows, „behalten“ | Phase 3 |

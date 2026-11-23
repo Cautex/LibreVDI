@@ -1,7 +1,8 @@
 # Roadmap
 
-Stand: 22.11.2026, nach dem ersten erfolgreichen Lab-Test (Phase-2-MVP: Portal → persistenter
-Windows-11-Desktop per RDP). Reihenfolge innerhalb einer Phase = vorgeschlagene Priorität.
+Stand: 23.11.2026. Reihenfolge der Phasen = vereinbarte Reihenfolge: erst persistente Desktops
+vollständig und übersichtlich, dann automatisierte Pools (Phase 3). Innerhalb einer Phase =
+vorgeschlagene Priorität.
 
 ## Phase 2b – MVP abrunden
 
@@ -20,6 +21,37 @@ Windows-11-Desktop per RDP). Reihenfolge innerhalb einer Phase = vorgeschlagene 
 | 1 | **Energie-Richtlinie** für persistente Pools: nach Abmeldung herunterfahren (Verzögerung in Minuten) oder immer eingeschaltet; ausgeschaltete VMs starten beim Verbinden | ✅ umgesetzt |
 | 2 | **Begriffe und Pooltypen** wie bei Horizon erklärt ([horizon-vergleich.md](horizon-vergleich.md)) | ✅ umgesetzt |
 
+## Phase 2d – Persistente Desktops fertigstellen (aktuell)
+
+| # | Thema | Stand |
+|---|---|---|
+| 1 | **Feste Zuweisung durch den Admin** (Horizon „Assign User“): VM vorbereiten, einem Benutzer zuweisen; Schalter *Automatic assignment* am Dienst (aus = nur zugewiesene VMs) | ✅ umgesetzt, Lab-Test nach [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
+| 2 | **Durchgehende Testanleitung** von leerem System bis Verbindung | ✅ [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
+| 3 | Agent-Update über ältere Versionen (Dienst-Umbenennung) im Lab bestätigen | offen |
+
+## Phase 2e – Bedienung wie bei Horizon: Oberfläche, Navigation, Begriffe
+
+Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services → Pools → Service-Pools
+→ Zugewiesene Services). Ziel ist eine Struktur, die Horizon-Administratoren sofort verstehen:
+
+- **Konzept zuerst** (mit Skizzen, vor jeder Umsetzung abstimmen): Navigation etwa
+  *Inventar* (Desktop-Pools, Maschinen, Benutzer-Zuweisungen), *Überwachung* (Sitzungen,
+  Ereignisse, Problem-Maschinen), *Benutzer und Gruppen*, *Einstellungen* (Hypervisoren,
+  Protokolle/Transporte, Tunnel, Zertifikate)
+- **Begriffe** vereinheitlichen (z. B. „Desktop-Pool“ statt „Service-Pool“, „Maschinen“ statt
+  „Zugewiesene Services“, „Hypervisor“ statt „Anbieter“), verständliche Spalten und Status
+- **Pool anlegen in einem Ablauf**: Typ (manuell/automatisiert, dedicated/floating) →
+  VMs → Protokoll → Berechtigung, statt vier getrennter Bereiche
+- Umsetzung: eigene Oberfläche über die vorhandene REST-API (Upstream-Verwaltung bleibt für
+  Spezialfälle erreichbar) oder Anpassung der Upstream-Oberfläche – Entscheidung als ADR
+
+## Phase 2f – LibreVDI Client als Desktop-App (Windows, später Linux)
+
+Wie der Horizon Client: Server eintragen, anmelden, Desktops als Liste, Doppelklick verbindet –
+ohne Browser. Vorher Spike: welche Broker-API die Desktop-Liste und Tickets liefert (das Portal
+nutzt dafür bereits eine REST-Schnittstelle); dann eigene App auf Basis der Upstream-Rust-Bausteine
+(Verbindungsaufbau, FreeRDP), Windows zuerst, Linux in Phase 4.
+
 ## Phase 3 – Automatisierte Pools (Klone), floating und dedicated
 
 Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, dedicated“.
@@ -35,7 +67,7 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 
 ## Phase 4 – Linux
 
-- **Linux-Client** (Launcher für Debian/Ubuntu/Fedora als Paket; Upstream liefert die Bausteine)
+- **Linux-Client** (Desktop-App aus Phase 2f bzw. Launcher als Paket für Debian/Ubuntu/Fedora)
 - **Linux-Agent** und Linux-Desktops (persistente und geklonte Pools, xrdp)
 
 ## Phase 5 – GPU
@@ -46,10 +78,5 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 
 ## Später / eigene Bausteine
 
-- **LibreVDI Desktop-App für Windows** (wie der native Horizon Client): Server eintragen,
-  anmelden, Desktops als Liste, Doppelklick verbindet – ohne Browser. Vorher prüfen, welche
-  Broker-API dafür nutzbar ist (Spike), dann eigene App auf Basis der Upstream-Rust-Bausteine.
-- Navigation, Übersichten und Wording der Admin-Oberfläche überarbeiten (z. B. „Zugewiesene
-  Dienste“: verständliche Spalten und Status, Actor-Version) – eigenes Thema, später
 - Härtung, MFA/OIDC
 - Upstream-Beiträge aus `docs/upstream-notes.md`

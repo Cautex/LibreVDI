@@ -25,6 +25,7 @@ import typing
 from django.db.models.signals import pre_save
 from django.utils.translation import gettext_noop as _
 from uds.core import types
+from uds.core.exceptions.services import MaxServicesReachedError
 from uds.core.managers.userservice import UserServiceManager
 from uds.core.ui import gui
 from uds.models import ServicePool
@@ -55,6 +56,19 @@ class ProxmoxServicePersistent(ProxmoxServiceFixed):
     machines = ProxmoxServiceFixed.machines
     use_snapshots = ProxmoxServiceFixed.use_snapshots
     maintain_on_error = ProxmoxServiceFixed.maintain_on_error
+
+    # Like "automatic assignment" of dedicated pools in commercial VDI: off = only machines an
+    # administrator assigned (Service pool -> Assigned services -> Assign service) are handed out.
+    auto_assign = gui.CheckBoxField(
+        label=_("Automatic assignment"),
+        order=99,
+        default=True,
+        tooltip=_(
+            "On: a user without a machine gets the next free one on first login and keeps it. "
+            "Off: users only get the machine an administrator assigned to them."
+        ),
+        tab=types.ui.Tab.ADVANCED,
+    )
 
     # Power policy (applied by power_policy.PersistentPowerPolicy every two minutes)
     power_policy = gui.ChoiceField(
@@ -113,6 +127,21 @@ def _release_from_logout(self: UserServiceManager, userservice: typing.Any) -> N
     _original_release_from_logout(self, userservice)
 
 
+_original_create_assigned_for = UserServiceManager.create_assigned_for
+
+
+def _create_assigned_for(self: UserServiceManager, service_pool: typing.Any, user: typing.Any) -> typing.Any:
+    """New automatic assignments only if the persistent service allows it."""
+    if is_persistent_pool(service_pool) and not service_pool.service.get_instance().auto_assign.as_bool():
+        logger.info(
+            "librevdi: no machine assigned to %s in pool %s and automatic assignment is off",
+            user.pretty_name,
+            service_pool.name,
+        )
+        raise MaxServicesReachedError()  # portal: "no more services available" - nothing is created
+    return _original_create_assigned_for(self, service_pool, user)
+
+
 def register() -> None:
     """Offer the service type in the Proxmox provider and install the hooks (idempotent)."""
     if not any(t.type_type == TYPE_TYPE for t in ProxmoxProvider.offers):
@@ -120,6 +149,8 @@ def register() -> None:
     pre_save.connect(_keep_unused_assignments, sender=ServicePool, dispatch_uid="librevdi-persistent-unused")
     if UserServiceManager.release_from_logout is not _release_from_logout:
         UserServiceManager.release_from_logout = _release_from_logout  # type: ignore[method-assign]
+    if UserServiceManager.create_assigned_for is not _create_assigned_for:
+        UserServiceManager.create_assigned_for = _create_assigned_for  # type: ignore[method-assign]
 
 
 register()

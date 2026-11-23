@@ -58,6 +58,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 - Installers close a running client (with confirmation) or agent helpers before updating files;
   the power policy pauses while the provider is in maintenance mode.
 
+### Added (Phase 2d)
+- Persistent desktops: switch *Automatic assignment* (off = users only get the machine an
+  administrator assigned via "Assign service", like dedicated pools without automatic assignment).
+- Step-by-step guide from an empty system to a connection with fixed user assignment
+  (`docs/anleitung-persistente-desktops.md`); roadmap: UI/navigation (2e), desktop client app (2f).
+
 ### Fixed (from the Phase 2b lab test)
 - Persistent desktops: assignments were still released after about 10 minutes by the upstream
   "Unused services checker" job (pools without OS manager). Pools of this service type now always
