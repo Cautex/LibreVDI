@@ -172,7 +172,8 @@ jobs:
       - name: Assets and checksums
         run: |
           mkdir assets
-          cp windows/LibreVDI-*-Setup-"$VERSION".exe windows/THIRD-PARTY-NOTICES-*.txt assets/
+          cp windows/LibreVDI-*-Setup-"$VERSION".exe windows/THIRD-PARTY-NOTICES-*.txt \
+             windows/LibreVDI-Client-LGPL-sources-"$VERSION".zip assets/
           cp THIRD_PARTY.md assets/THIRD_PARTY.md
           (cd assets && sha256sum -- * > SHA256SUMS)
           cat assets/SHA256SUMS
@@ -199,7 +200,8 @@ jobs:
           "Launcher" for users, agent downloads in the admin UI). See docs/installation.md.
 
           LibreVDI is based on OpenUDS (BSD-3-Clause, © Virtual Cable S.L.) and is not affiliated
-          with Virtual Cable S.L. Third-party licenses: THIRD_PARTY.md and THIRD-PARTY-NOTICES-*.txt.
+          with Virtual Cable S.L. Third-party licenses: THIRD_PARTY.md and THIRD-PARTY-NOTICES-*.txt;
+          source code of the LGPL libraries in the client: LibreVDI-Client-LGPL-sources-$VERSION.zip.
           EOF
           cat notes.md
       - name: Dry run – keep assets as workflow artifact

@@ -21,6 +21,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   GitHub release with SHA256SUMS. Release images contain the matching Windows installers.
 - Third-party license notices (`THIRD-PARTY-NOTICES.txt`) generated during the build and shipped
   in both installers; Windows file version set from the release version.
+- Corresponding source of the LGPL libraries in the client (FFmpeg, libusb: upstream archives,
+  vcpkg port files and patches) collected during the build and attached to every release.
 
 ### Added (Phase 2)
 - Windows builds in GitHub Actions: LibreVDI Agent (OpenUDS actor, `unmanaged` and `managed`

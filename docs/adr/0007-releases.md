@@ -22,7 +22,9 @@
   `THIRD_PARTY.md` und `SHA256SUMS`. Veröffentlichen ist ein bewusster manueller Schritt.
 - **Lizenzhinweise** werden beim Build erzeugt (`packaging/windows/collect_licenses.py`): alle zur
   Laufzeit gelinkten Rust-Crates, vcpkg-Bibliotheken, FreeRDP, VC-Laufzeit – mit Lizenztexten,
-  im Installer als `THIRD-PARTY-NOTICES.txt`.
+  im Installer als `THIRD-PARTY-NOTICES.txt`. Für die LGPL-Bibliotheken des Clients (FFmpeg,
+  libusb) hängt jedes Release den zugehörigen Quellcode an (Original-Archive + vcpkg-Portdateien
+  und Patches des Builds), statt eines Angebots „auf Anfrage“.
 
 ## Konsequenzen
 

@@ -6,6 +6,9 @@
 # Mirrors upstream/uds-client/building/windows/Dockerfile, but runs natively (e.g. GitHub
 # Actions windows runners, which already have Visual Studio, CMake, LLVM and vcpkg).
 #
+# Also keeps the source archives + vcpkg port files of the LGPL libraries (FFmpeg, libusb) in
+# LGPL_SOURCES_DIR (default C:\dev\lgpl-sources) for the release ("corresponding source").
+#
 # Required environment: VCPKG_ROOT, FREERDP_ROOT. Optional: FREERDP_VERSION (default 3.26.0).
 $ErrorActionPreference = "Stop"
 
@@ -28,6 +31,24 @@ foreach ($candidate in @("libz.dll", "zlib1.dll")) {
     $src = Join-Path $bin $candidate
     if ((Test-Path $src) -and -not (Test-Path (Join-Path $bin "z.dll"))) {
         Copy-Item $src (Join-Path $bin "z.dll")
+    }
+}
+
+# LGPL libraries (shipped as DLLs): keep the exact source archives and the vcpkg port files
+# (portfile + patches) used for this build, so every release can ship the corresponding source.
+$lgplDir = if ($env:LGPL_SOURCES_DIR) { $env:LGPL_SOURCES_DIR } else { "C:\dev\lgpl-sources" }
+if (-not (Test-Path $lgplDir)) {
+    Write-Host "== LGPL sources -> $lgplDir"
+    $downloads = Join-Path $env:VCPKG_ROOT "downloads"
+    foreach ($port in @("ffmpeg", "libusb")) {
+        $target = Join-Path $lgplDir $port
+        New-Item -ItemType Directory -Force $target | Out-Null
+        Copy-Item -Recurse (Join-Path $env:VCPKG_ROOT "ports\$port") (Join-Path $target "vcpkg-port")
+        Copy-Item (Join-Path $installed "x64-windows\share\$port\vcpkg.spdx.json") $target
+        $archives = Get-ChildItem $downloads -File | Where-Object { $_.Name -like "*$port*" -and $_.Extension -in ".gz", ".xz", ".bz2", ".zip", ".tgz" }
+        if (-not $archives) { throw "source archive for $port not found in $downloads" }
+        $archives | Copy-Item -Destination $target
+        Get-ChildItem $target | Format-Table Name, Length
     }
 }
 

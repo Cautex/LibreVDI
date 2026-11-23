@@ -39,9 +39,8 @@ and also attached to every GitHub release (`THIRD-PARTY-NOTICES-Agent.txt`, `-Cl
 
 Crates offered under a choice of licenses (e.g. `Apache-2.0 OR GPL-2.0-only`) are used under the
 permissive option. **LGPL libraries:** they are dynamically linked and can be replaced by the user.
-Their unmodified source code is the upstream release referenced by the vcpkg port version listed
-in `THIRD-PARTY-NOTICES-Client.txt`; on request (GitHub issue in this repository) we provide the
-exact source archives used for a release, for at least three years after that release.
+Their corresponding source code (the exact upstream archives plus the vcpkg port files and patches
+used for the build) is attached to every release as `LibreVDI-Client-LGPL-sources-<version>.zip`.
 
 ## Container images used by `compose.yaml`
 
