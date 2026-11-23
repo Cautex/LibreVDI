@@ -71,6 +71,18 @@ Section "Client"
     nsExec::Exec 'taskkill.exe /F /IM launcher.exe'
     Sleep 1500
   ${EndIf}
+  ; Files still in use (client not detected above, other session, virus scanner) cannot be
+  ; overwritten but can be renamed: move the old ones aside, removed now or after a reboot.
+  Delete "$INSTDIR\*.old"
+  Rename "$INSTDIR\launcher.exe" "$INSTDIR\launcher.exe.old"
+  FindFirst $2 $3 "$INSTDIR\*.dll"
+  rename_dlls:
+    StrCmp $3 "" rename_done
+    Rename "$INSTDIR\$3" "$INSTDIR\$3.old"
+    FindNext $2 $3
+    Goto rename_dlls
+  rename_done:
+  FindClose $2
   SetOutPath $INSTDIR
   File "${SRCDIR}\launcher.exe"
   File /oname=librevdi.ico "..\..\branding\logo.ico"
@@ -87,6 +99,7 @@ Section "Client"
   WriteRegStr HKLM "Software\Classes\${SCHEME}\DefaultIcon" "" '"$INSTDIR\librevdi.ico"'
   WriteRegStr HKLM "Software\Classes\${SCHEME}\shell\open\command" "" '"$INSTDIR\launcher.exe" "%1"'
 
+  Delete /REBOOTOK "$INSTDIR\*.old"
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT}"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"

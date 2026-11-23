@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true  # installer scripts include upstream license files
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -27,7 +29,11 @@ jobs:
           ruff check .
           ruff format --check .
       - name: shellcheck
-        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh docker/tunnel/entrypoint.sh tests/smoke.sh tests/load.sh tests/tunnel.sh tools/fetch-windows-builds.sh
+        run: shellcheck docker/broker/entrypoint.sh docker/broker/scripts/with-extra-ca.sh docker/tunnel/entrypoint.sh tests/smoke.sh tests/load.sh tests/tunnel.sh tests/nsis-compile.sh tools/fetch-windows-builds.sh
+      - name: Windows installer scripts compile (NSIS)
+        run: |
+          sudo apt-get install -y -qq nsis >/dev/null
+          tests/nsis-compile.sh
       - name: compose file
         run: |
           cp .env.example .env

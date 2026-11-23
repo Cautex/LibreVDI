@@ -65,6 +65,11 @@ Function .onInit
   SetRegView 64
 FunctionEnd
 
+!macro MoveAside NAME
+  IfFileExists "$INSTDIR\${NAME}" 0 +2
+    Rename "$INSTDIR\${NAME}" "$INSTDIR\${NAME}.old"
+!macroend
+
 Section "Agent"
   ; stop a running agent (this or an older version) so its files can be replaced
   nsExec::Exec 'sc.exe stop LibreVDIAgent'
@@ -74,6 +79,12 @@ Section "Agent"
   nsExec::Exec 'taskkill.exe /F /IM gui-helper.exe'
   nsExec::Exec 'taskkill.exe /F /IM udsactor-config.exe'
   Sleep 3000
+  ; files still in use cannot be overwritten but can be renamed (removed now or after a reboot)
+  Delete "$INSTDIR\*.old"
+  !insertmacro MoveAside "gui-helper.exe"
+  !insertmacro MoveAside "udsactor-client.exe"
+  !insertmacro MoveAside "udsactor-service.exe"
+  !insertmacro MoveAside "udsactor-config.exe"
   SetOutPath $INSTDIR
   File /oname=librevdi.ico "..\..\branding\logo.ico"
   File "${SRCDIR}\gui-helper.exe"
@@ -103,6 +114,7 @@ Section "Agent"
   CreateDirectory "$SMPROGRAMS\LibreVDI"
   CreateShortCut "$SMPROGRAMS\LibreVDI\LibreVDI Agent konfigurieren.lnk" "$INSTDIR\udsactor-config.exe" "" "$INSTDIR\librevdi.ico"
 
+  Delete /REBOOTOK "$INSTDIR\*.old"
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT} (${VARIANT})"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
