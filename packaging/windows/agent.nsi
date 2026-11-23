@@ -101,11 +101,28 @@ Section "Agent"
     File /oname=THIRD-PARTY-NOTICES.txt "${NOTICES}"
   !endif
 
-  ; Windows service "LibreVDIAgent" (removes an older "UDSActorService" itself)
-  ExecWait '"$INSTDIR\udsactor-service.exe" --install' $0
-  ${If} $0 != 0
-    MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0).$\r$\nThe LibreVDI Agent service could not be installed (code $0)."
-  ${EndIf}
+  ; Windows service "LibreVDIAgent". "--uninstall" first removes an existing LibreVDIAgent and the
+  ; older "UDSActorService" (same display name). Windows finishes deleting a service only when no
+  ; handle is open anymore (e.g. the Services console), so creating the new one is retried.
+  nsExec::ExecToLog '"$INSTDIR\udsactor-service.exe" --uninstall'
+  Pop $0
+  StrCpy $1 0
+  install_service:
+    IntOp $1 $1 + 1
+    nsExec::ExecToLog '"$INSTDIR\udsactor-service.exe" --install'
+    Pop $0
+    StrCmp $0 "0" service_installed
+    IntCmp $1 10 service_failed
+    DetailPrint "Dienst noch nicht bereit, neuer Versuch ($1/10) ..."
+    Sleep 3000
+    Goto install_service
+  service_failed:
+    MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0). Bitte die Dienste-Konsole schließen oder Windows neu starten und den Installer erneut ausführen. Details: 'Details anzeigen'.$\r$\n$\r$\nThe LibreVDI Agent service could not be installed (code $0). Close the Services console or restart Windows and run the installer again."
+    Goto service_done
+  service_installed:
+    nsExec::ExecToLog 'sc.exe start LibreVDIAgent'
+    Pop $0
+  service_done:
 
   ; Broker -> agent communication (default listener port 43910)
   nsExec::Exec 'netsh advfirewall firewall delete rule name="LibreVDI Agent"'

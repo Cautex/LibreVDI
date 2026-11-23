@@ -46,6 +46,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Agent installer: removes existing/older agent services first, retries creating the service
+  (Windows deletes services delayed), starts it and shows the agent's output in the details.
 - Downloads: the highest installer version wins (not the newest file date), admin downloads show
   the real file name incl. version, `fetch-windows-builds.sh` removes older installers.
 - Installers move files that are still in use aside (renamed, deleted after reboot) instead of
