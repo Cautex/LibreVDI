@@ -72,7 +72,8 @@ if [[ "${LIBREVDI_PROXY_CONFIG:-Caddyfile}" == "Caddyfile" && "${LIBREVDI_TLS:-i
 fi
 expect_status /uds/res/librevdi/rdp-signing.crt 200  # RDP signing certificate for clients
 if [[ "${SMOKE_EXPECT_DOWNLOADS:-0}" == "1" ]]; then
-  expect_status /uds/res/clients/UDSLauncherInstaller-5.0.0.exe 200  # portal "Launcher" download
+  client=$(docker compose exec -T broker-web sh -c 'ls /app/static/clients/ | grep "^LibreVDI-Client-Setup-" | head -1')
+  expect_status "/uds/res/clients/${client:-missing}" 200  # portal "LibreVDI Client" download
   for f in UDSActorSetup-5.0.0.exe UDSActorUnmanagedSetup-5.0.0.exe; do  # admin UI agent downloads
     if docker compose exec -T broker-web test -s "/app/uds/osmanagers/WindowsOsManager/files/$f"; then
       echo "ok    agent installer $f published"

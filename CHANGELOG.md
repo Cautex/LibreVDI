@@ -21,6 +21,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   GitHub release with SHA256SUMS. Release images contain the matching Windows installers.
 - Third-party license notices (`THIRD-PARTY-NOTICES.txt`) generated during the build and shipped
   in both installers; Windows file version set from the release version.
+- Windows: agent service renamed to `LibreVDIAgent` (an older `UDSActorService` is removed on
+  install), LibreVDI logo in "Installed apps" and the start menu, portal offers the client as
+  `LibreVDI-Client-Setup-<version>.exe` instead of the upstream file name.
 - Corresponding source of the LGPL libraries in the client (FFmpeg, libusb: upstream archives,
   vcpkg port files and patches) collected during the build and attached to every release.
 

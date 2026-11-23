@@ -62,6 +62,7 @@ FunctionEnd
 Section "Client"
   SetOutPath $INSTDIR
   File "${SRCDIR}\launcher.exe"
+  File /oname=librevdi.ico "..\..\branding\logo.ico"
   File /nonfatal "${SRCDIR}\*.dll"
   File /oname=LICENSE-OpenUDS.txt "..\..\upstream\uds-client\LICENSE"
   !ifdef NOTICES
@@ -72,13 +73,14 @@ Section "Client"
   ; URL scheme handler: the portal hands connections to udssv2://host/ticket/scrambler
   WriteRegStr HKLM "Software\Classes\${SCHEME}" "" "URL:LibreVDI Protocol"
   WriteRegStr HKLM "Software\Classes\${SCHEME}" "URL Protocol" ""
-  WriteRegStr HKLM "Software\Classes\${SCHEME}\DefaultIcon" "" '"$INSTDIR\launcher.exe",0'
+  WriteRegStr HKLM "Software\Classes\${SCHEME}\DefaultIcon" "" '"$INSTDIR\librevdi.ico"'
   WriteRegStr HKLM "Software\Classes\${SCHEME}\shell\open\command" "" '"$INSTDIR\launcher.exe" "%1"'
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT}"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKLM "${UNINST_KEY}" "Publisher" "LibreVDI"
+  WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\librevdi.ico"
   WriteRegStr HKLM "${UNINST_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1

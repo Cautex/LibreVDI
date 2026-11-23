@@ -9,6 +9,8 @@ Installers are published to the upstream locations by ``librevdi_ext.downloads``
 server starts, so the file checks here see the final state.
 """
 
+import dataclasses
+import glob
 import os
 import re
 
@@ -50,6 +52,14 @@ def apply() -> None:
             item.name = _rebrand(item.name, _NAME_MAP)
             item.description = _rebrand(item.description, _TEXT_MAP)
 
+    clients = sorted(glob.glob(os.path.join(settings.STATIC_ROOT, "clients", "LibreVDI-Client-Setup-*.exe")))
+    for i, plugin in enumerate(udsclients_info.PLUGINS):
+        if clients and plugin.name == "Windows" and "UDSLauncherInstaller-" in plugin.url:
+            udsclients_info.PLUGINS[i] = dataclasses.replace(
+                plugin,
+                url=plugin.url.rsplit("/", 1)[0] + "/" + os.path.basename(clients[-1]),
+                description="LibreVDI Client (Windows)",
+            )
     udsclients_info.PLUGINS[:] = [p for p in udsclients_info.PLUGINS if os.path.isfile(_static_file(p.url))]
 
 

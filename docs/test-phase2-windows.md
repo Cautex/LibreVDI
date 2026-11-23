@@ -146,8 +146,8 @@ Alternativ die `.exe`-Dateien aus den Artefakten von Hand nach `downloads/` kopi
 
 1. In der VM in Edge `https://<LIBREVDI_DOMAIN>/` öffnen, als **root** anmelden.
 2. Im Portal oben rechts das Benutzermenü → **Downloads** (nur für Admins sichtbar, direkt:
-   `https://<LIBREVDI_DOMAIN>/uds/page/downloads`) → „UDS Actor for Unmanaged windows machines“.
-   Die Beschriftung stammt noch von openUDS; die Datei ist der **LibreVDI-Agent (unmanaged)**.
+   `https://<LIBREVDI_DOMAIN>/uds/page/downloads`) → „LibreVDI Agent for Unmanaged windows
+   machines“ (Datei `LibreVDI-Agent-unmanaged-Setup-….exe`).
 3. Die heruntergeladene Datei als Administrator ausführen und installieren.
 4. Startmenü → **LibreVDI → „LibreVDI Agent konfigurieren“**:
    - SSL Validation: **Verify certificate**

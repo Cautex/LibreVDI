@@ -24,7 +24,7 @@ def test_publish_maps_and_picks_newest(tmp_path):
 
     published = downloads.publish(str(src), str(app), "5.0.0")
 
-    client = app / "static/clients/UDSLauncherInstaller-5.0.0.exe"
+    client = app / "static/clients/LibreVDI-Client-Setup-0.1.0-dev.4.exe"
     agent = app / "uds/osmanagers/WindowsOsManager/files/UDSActorUnmanagedSetup-5.0.0.exe"
     assert client.read_bytes() == b"new"
     assert agent.read_bytes() == b"unmanaged"
@@ -48,6 +48,19 @@ def test_publish_host_dir_wins_bundled_fills_gaps(tmp_path):
 
     published = downloads.publish([str(host), str(bundled)], str(app), "5.0.0")
 
-    assert (app / "static/clients/UDSLauncherInstaller-5.0.0.exe").read_bytes() == b"host client"
+    assert (app / "static/clients/LibreVDI-Client-Setup-0.3.0.exe").read_bytes() == b"host client"
     assert (app / "uds/osmanagers/WindowsOsManager/files/UDSActorSetup-5.0.0.exe").read_bytes() == b"bundled agent"
     assert len(published) == 2
+
+
+def test_publish_client_removes_other_versions(tmp_path):
+    src = tmp_path / "downloads"
+    app = tmp_path / "app"
+    (app / "static/clients").mkdir(parents=True)
+    (app / "static/clients/LibreVDI-Client-Setup-0.1.0.exe").write_bytes(b"old")
+    src.mkdir()
+    (src / "LibreVDI-Client-Setup-0.2.0.exe").write_bytes(b"new")
+
+    downloads.publish(str(src), str(app), "5.0.0")
+
+    assert [p.name for p in (app / "static/clients").iterdir()] == ["LibreVDI-Client-Setup-0.2.0.exe"]

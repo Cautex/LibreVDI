@@ -66,7 +66,12 @@ Function .onInit
 FunctionEnd
 
 Section "Agent"
+  ; stop a running agent (this or an older version) so its files can be replaced
+  nsExec::Exec 'sc.exe stop LibreVDIAgent'
+  nsExec::Exec 'sc.exe stop UDSActorService'
+  Sleep 3000
   SetOutPath $INSTDIR
+  File /oname=librevdi.ico "..\..\branding\logo.ico"
   File "${SRCDIR}\gui-helper.exe"
   File "${SRCDIR}\udsactor-client.exe"
   File "${SRCDIR}\udsactor-service.exe"
@@ -81,7 +86,7 @@ Section "Agent"
     File /oname=THIRD-PARTY-NOTICES.txt "${NOTICES}"
   !endif
 
-  ; Windows service (name defined by upstream binary)
+  ; Windows service "LibreVDIAgent" (removes an older "UDSActorService" itself)
   ExecWait '"$INSTDIR\udsactor-service.exe" --install' $0
   ${If} $0 != 0
     MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0).$\r$\nThe LibreVDI Agent service could not be installed (code $0)."
@@ -92,12 +97,13 @@ Section "Agent"
   nsExec::Exec 'netsh advfirewall firewall add rule name="LibreVDI Agent" dir=in action=allow protocol=TCP localport=43910 program="$INSTDIR\udsactor-service.exe"'
 
   CreateDirectory "$SMPROGRAMS\LibreVDI"
-  CreateShortCut "$SMPROGRAMS\LibreVDI\LibreVDI Agent konfigurieren.lnk" "$INSTDIR\udsactor-config.exe"
+  CreateShortCut "$SMPROGRAMS\LibreVDI\LibreVDI Agent konfigurieren.lnk" "$INSTDIR\udsactor-config.exe" "" "$INSTDIR\librevdi.ico"
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT} (${VARIANT})"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKLM "${UNINST_KEY}" "Publisher" "LibreVDI"
+  WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\librevdi.ico"
   WriteRegStr HKLM "${UNINST_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1

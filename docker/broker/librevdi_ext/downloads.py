@@ -5,8 +5,8 @@ Files are taken from ``LIBREVDI_DOWNLOADS_DIR`` (default ``/opt/librevdi/downloa
 bundled into release images (``/opt/librevdi/bundled-downloads``). They are copied to the paths the
 OpenUDS broker serves:
 
-* client  -> static ``clients/UDSLauncherInstaller-<version>.exe``
-             (portal button "Launcher" / ``/uds/page/launcher-download``, all users)
+* client  -> static ``clients/LibreVDI-Client-Setup-<version>.exe`` (file name kept; the LibreVDI
+             plugin points the portal's Windows entry to it, ``/uds/page/launcher-download``)
 * agent   -> ``uds/osmanagers/WindowsOsManager/files/UDSActor[Unmanaged]Setup-<version>.exe``
              (listed in the admin UI download section)
 
@@ -24,7 +24,7 @@ VERSION_FILE = os.path.join(APP, "uds/core/consts/system.py")
 
 # (source glob in downloads dir, target path template relative to /app)
 TARGETS: tuple[tuple[str, str], ...] = (
-    ("LibreVDI-Client-Setup-*.exe", "static/clients/UDSLauncherInstaller-{version}.exe"),
+    ("LibreVDI-Client-Setup-*.exe", "static/clients/{source}"),
     ("LibreVDI-Agent-managed-Setup-*.exe", "uds/osmanagers/WindowsOsManager/files/UDSActorSetup-{version}.exe"),
     (
         "LibreVDI-Agent-unmanaged-Setup-*.exe",
@@ -58,8 +58,12 @@ def publish(source_dirs: str | list[str], app_dir: str, version: str) -> list[tu
         src = next((f for d in source_dirs if (f := newest(os.path.join(d, source_glob)))), None)
         if not src:
             continue
-        dst = os.path.join(app_dir, target_tpl.format(version=version))
+        dst = os.path.join(app_dir, target_tpl.format(version=version, source=os.path.basename(src)))
         os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if "{source}" in target_tpl:  # drop copies of other versions from earlier starts
+            for stale in glob.glob(os.path.join(os.path.dirname(dst), source_glob)):
+                if stale != dst:
+                    os.remove(stale)
         shutil.copyfile(src, dst)
         published.append((os.path.basename(src), dst))
     return published

@@ -7,8 +7,10 @@ Works on a checkout of ``upstream/uds-client`` or ``upstream/uds-actor`` in plac
 * icons and images in ``assets/img`` (same file names and sizes, LibreVDI logo)
 * client translations (``locales/*/LC_MESSAGES/*.po``) rebranded and recompiled to ``.mo``
 
-Technical identifiers stay untouched: service name ``UDSActorService``, environment variables,
-the agent's ``"UDS Actor v"`` user agent that the broker parses, registry paths.
+The Windows service is renamed to ``LibreVDIAgent``; the old name ``UDSActorService`` is added to
+the agent's legacy list, so installing over an older agent removes the old service.
+Technical identifiers stay untouched: environment variables, the agent's ``"UDS Actor v"`` user
+agent that the broker parses, registry paths.
 The upstream copyright remains (BSD-3-Clause); LibreVDI is added.
 
 Every expected replacement must match at least once – otherwise the script fails, so upstream
@@ -41,6 +43,9 @@ CLIENT_TEXT: list[tuple[str, str]] = [
 ]
 
 AGENT_TEXT: list[tuple[str, str]] = [
+    # service key name (shown in Task Manager / sc.exe); must stay identical in both places
+    ('"UDSActorService"', '"LibreVDIAgent"'),
+    ('&["UDSActorNG", "UDSActor"]', '&["UDSActorNG", "UDSActor", "UDSActorService"]'),
     ('"UDS Actor Unmanaged Configuration"', '"LibreVDI Agent Configuration (unmanaged)"'),
     ('"UDS Actor Configuration"', '"LibreVDI Agent Configuration"'),
     ('"UDS Actor (Unmanaged)"', '"LibreVDI Agent (unmanaged)"'),
