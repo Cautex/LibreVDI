@@ -158,6 +158,13 @@ Alternativ die `.exe`-Dateien aus den Artefakten von Hand nach `downloads/` kopi
 6. Im Broker: Pool „Mein Windows-Desktop“ → die VM sollte als **verfügbar** mit IP erscheinen
    (Reiter *Assigned services* bzw. nach der ersten Anmeldung zugewiesen).
 
+> **Wichtig:** Der Token gehört zu genau **einem Dienst**. Wird die VM einem anderen Dienst
+> zugeordnet (z. B. Wechsel von „Proxmox Fixed Machines“ zu „Proxmox Persistent Desktops
+> (LibreVDI)“), muss der Agent mit dem **Token des neuen Dienstes** neu konfiguriert werden.
+> Sonst kommen Anmeldungen nicht an: „In Benutzung“ bleibt „Nein“, die Actor-Version
+> „unbekannt“. Prüfen: nach einer Anmeldung zeigt *Zugewiesene Dienste* „In Benutzung: Ja“
+> und eine Actor-Version.
+
 ## Teil 6 – Client auf dem Benutzer-PC und Test
 
 1. Auf dem Benutzer-PC `https://<LIBREVDI_DOMAIN>/` öffnen → oben **Launcher** →

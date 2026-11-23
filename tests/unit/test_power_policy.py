@@ -33,3 +33,8 @@ def test_shutdown_delay_zero_means_immediately():
 def test_always_on_starts_only_stopped():
     stopped = {"101": True, "102": False}
     assert pp.machines_to_start(["101", "102", ""], lambda v: stopped[v]) == ["101"]
+
+
+def test_no_shutdown_without_agent_reports():
+    silent = pp.Assignment(vmid="101", in_use=False, in_use_since=NOW - datetime.timedelta(hours=2), agent_seen=False)
+    assert pp.machines_to_shut_down([silent], lambda v: True, NOW, 30) == []

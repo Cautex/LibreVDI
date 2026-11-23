@@ -59,6 +59,10 @@ Die Prüfung läuft alle zwei Minuten; die Aktionen stehen im Log des Dienstes b
 Wartungsmodus** setzen (Dienste → Anbieter → Wartung). Solange greift die Energie-Richtlinie nicht
 und Benutzer können sich nicht verbinden – wie der Wartungsmodus bei Horizon.
 
+VMs, deren Agent sich für die Zuweisung noch nie gemeldet hat (Actor-Version „unbekannt“, z. B.
+Agent mit dem Token eines anderen Dienstes), werden **nie** heruntergefahren – ohne Meldungen des
+Agents weiß LibreVDI nicht, ob jemand angemeldet ist.
+
 Benötigt das Proxmox-Recht `VM.PowerMgmt` (in der Rolle aus [test-phase1.md](test-phase1.md) enthalten).
 
 ## Was (noch) fehlt

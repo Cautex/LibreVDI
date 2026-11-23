@@ -10,6 +10,9 @@ Per service "Proxmox Persistent Desktops (LibreVDI)", tab "Power":
 Starting a stopped machine when its user connects is upstream behaviour (``set_ready`` of fixed
 machines) and works with every policy. A job checks all services of this type every two minutes.
 Disconnected sessions (RDP window closed without logoff) count as "in use" and are left alone.
+Machines whose agent never reported to the broker for this assignment (actor version unknown,
+e.g. agent configured with the token of another service) are never shut down: without agent
+reports the broker cannot know whether someone is logged in.
 Nothing happens while the provider is in maintenance mode (e.g. while an admin works on the VMs).
 """
 
@@ -35,6 +38,7 @@ class Assignment:
     vmid: str
     in_use: bool
     in_use_since: datetime.datetime | None  # last change of "in use" (login/logoff)
+    agent_seen: bool = True  # the agent reported to the broker for this assignment (actor version known)
 
 
 def machines_to_shut_down(
@@ -48,7 +52,12 @@ def machines_to_shut_down(
     return [
         a.vmid
         for a in assignments
-        if a.vmid and not a.in_use and a.in_use_since is not None and a.in_use_since <= cutoff and running(a.vmid)
+        if a.vmid
+        and a.agent_seen  # without agent reports "not in use" means nothing: never shut down a session
+        and not a.in_use
+        and a.in_use_since is not None
+        and a.in_use_since <= cutoff
+        and running(a.vmid)
     ]
 
 
@@ -110,7 +119,12 @@ def _job_class() -> type:
                 )
             }
             assignments = [
-                Assignment(vmid=vmid, in_use=us.in_use, in_use_since=us.in_use_date)
+                Assignment(
+                    vmid=vmid,
+                    in_use=us.in_use,
+                    in_use_since=us.in_use_date,
+                    agent_seen=us.actor_version not in ("", "0.0.0"),
+                )
                 for vmid, us in userservices.items()
             ]
             delay = service.power_delay.as_int()
