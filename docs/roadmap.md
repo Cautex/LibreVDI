@@ -13,20 +13,42 @@ Windows-11-Desktop per RDP). Reihenfolge innerhalb einer Phase = vorgeschlagene 
 | 4 | **Signierte RDP-Dateien** | keine Warnung „Unbekannter Herausgeber“ | Option *Sign RDP file* im Transport + Zertifikat aus eigener CA oder öffentlich; GPO-Vorlage „vertrauenswürdige RDP-Herausgeber“ |
 | 5 | **Releases** | fertige Downloads statt Selbstbau: Docker-Image (GHCR) + Windows-Installer als GitHub-Release, Lizenzhinweise für mitgelieferte Bibliotheken (FreeRDP, FFmpeg, OpenSSL …) | ✅ umgesetzt: `release.yml` (Tag → Draft-Release + GHCR), Installer im Image gebündelt, Lizenzhinweise automatisch ([release.md](release.md)); offen: Code-Signing der Installer |
 
-## Phase 3 – Instant Clones / Floating-Pools mit Windows
+## Phase 2c – näher an die Horizon-Logik
+
+| # | Thema | Stand |
+|---|---|---|
+| 1 | **Energie-Richtlinie** für persistente Pools: nach Abmeldung herunterfahren (Verzögerung in Minuten) oder immer eingeschaltet; ausgeschaltete VMs starten beim Verbinden | ✅ umgesetzt |
+| 2 | **Begriffe und Pooltypen** wie bei Horizon erklärt ([horizon-vergleich.md](horizon-vergleich.md)) | ✅ umgesetzt |
+
+## Phase 3 – Automatisierte Pools (Klone), floating und dedicated
+
+Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, dedicated“.
 
 - Unbeaufsichtigte Template-Erstellung: `autounattend.xml` (lokales Konto, RDP, VirtIO, Guest
   Agent, LibreVDI-Agent „managed“), dokumentiert und skriptbar
 - Linked-Clone-Pool mit Windows-OS-Manager (Rename, optional AD-Join), Warm-Pool, Löschen bei
   Abmeldung, Disconnect-/Maximal-Timeouts
+- Dedicated-Variante: Klon bleibt beim Benutzer (OS-Manager „behalten“), Energie-Richtlinie
+  auch für Klone
+- Image-Update per Publikation (neue Template-Version, Klone werden schrittweise ersetzt)
 - Domain-Join-Variante (AD im Lab), Profile (FSLogix/Roaming) dokumentieren
+
+## Phase 4 – Linux
+
+- **Linux-Client** (Launcher für Debian/Ubuntu/Fedora als Paket; Upstream liefert die Bausteine)
+- **Linux-Agent** und Linux-Desktops (persistente und geklonte Pools, xrdp)
+
+## Phase 5 – GPU
+
+- **GPU-Unterstützung**: Durchreichen ganzer GPUs (PCI-Passthrough) für persistente Desktops,
+  später geteilte GPUs (vGPU/SR-IOV, abhängig von Hardware und Lizenzen); passende
+  Protokolleinstellungen (H.264/AVC444)
 
 ## Später / eigene Bausteine
 
 - **LibreVDI Desktop-App für Windows** (wie der native Horizon Client): Server eintragen,
   anmelden, Desktops als Liste, Doppelklick verbindet – ohne Browser. Vorher prüfen, welche
   Broker-API dafür nutzbar ist (Spike), dann eigene App auf Basis der Upstream-Rust-Bausteine.
-- Admin-Oberfläche vereinfachen (z. B. Pool-Details per Einfachklick, geführter
-  „Pool anlegen“-Assistent) – eigene Oberfläche über die REST-API oder Upstream-Beiträge
-- Linux-Desktops (Phase 5), Härtung/MFA/OIDC (Phase 6), GPU (Phase 7)
+- Navigation und Aufbau der Admin-Oberfläche überarbeiten (eigenes Thema, später)
+- Härtung, MFA/OIDC
 - Upstream-Beiträge aus `docs/upstream-notes.md`

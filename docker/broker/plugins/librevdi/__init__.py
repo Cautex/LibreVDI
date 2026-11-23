@@ -6,4 +6,7 @@ file has to be changed.
 """
 
 from . import downloads as downloads  # noqa: F401
+from . import power_policy as power_policy  # noqa: F401, E402
 from . import proxmox_persistent as proxmox_persistent  # noqa: F401
+
+power_policy.register()

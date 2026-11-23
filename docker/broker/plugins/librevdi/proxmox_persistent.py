@@ -24,10 +24,14 @@ import typing
 
 from django.db.models.signals import pre_save
 from django.utils.translation import gettext_noop as _
+from uds.core import types
 from uds.core.managers.userservice import UserServiceManager
+from uds.core.ui import gui
 from uds.models import ServicePool
 from uds.services.Proxmox.provider import ProxmoxProvider
 from uds.services.Proxmox.service_fixed import ProxmoxServiceFixed
+
+from .power_policy import POLICY_ALWAYS_ON, POLICY_NONE, POLICY_SHUTDOWN
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +55,34 @@ class ProxmoxServicePersistent(ProxmoxServiceFixed):
     machines = ProxmoxServiceFixed.machines
     use_snapshots = ProxmoxServiceFixed.use_snapshots
     maintain_on_error = ProxmoxServiceFixed.maintain_on_error
+
+    # Power policy (applied by power_policy.PersistentPowerPolicy every two minutes)
+    power_policy = gui.ChoiceField(
+        label=_("After logoff"),
+        order=100,
+        default=POLICY_NONE,
+        choices=[
+            gui.choice_item(POLICY_NONE, _("Do nothing")),
+            gui.choice_item(POLICY_SHUTDOWN, _("Shut down machine after delay")),
+            gui.choice_item(POLICY_ALWAYS_ON, _("Keep all machines powered on")),
+        ],
+        tooltip=_(
+            "Power policy for the machines of this service. Stopped machines are always started "
+            "when their user connects."
+        ),
+        tab=types.ui.Tab.ADVANCED,
+    )
+    power_delay = gui.NumericField(
+        label=_("Shutdown delay (minutes)"),
+        order=101,
+        length=4,
+        default=30,
+        min_value=0,
+        max_value=10080,
+        tooltip=_("Minutes after the user logged off before the machine is shut down"),
+        tab=types.ui.Tab.ADVANCED,
+        required=True,
+    )
 
     @typing.override
     def is_removable_on_logout(self) -> bool:

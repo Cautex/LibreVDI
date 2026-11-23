@@ -41,6 +41,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 - **Phase 2 MVP reached in the lab (22.11.2026):** user logs in to the portal, selects the
   persistent Windows 11 Pro desktop, LibreVDI Client opens the RDP session (Proxmox VE 9.2).
 
+### Added (Phase 2c)
+- Power policy for "Proxmox Persistent Desktops (LibreVDI)": shut a machine down N minutes after
+  its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
+  are started when their user connects (upstream behaviour).
+- `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+
 ### Fixed (from the Phase 2b lab test)
 - Persistent desktops: assignments were still released after about 10 minutes by the upstream
   "Unused services checker" job (pools without OS manager). Pools of this service type now always

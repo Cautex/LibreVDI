@@ -44,6 +44,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Tunnel (optional, pro Pool)](docs/tunnel.md)
 - [Signierte RDP-Dateien](docs/rdp-signing.md)
 - [Releases](docs/release.md)
+- [LibreVDI für Horizon-Kenner](docs/horizon-vergleich.md)
 - [Roadmap](docs/roadmap.md)
 - [Software Dritter / Lizenzen](THIRD_PARTY.md)
 
