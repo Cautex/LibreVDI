@@ -46,6 +46,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Agent configuration window shows the LibreVDI logo (crate-embedded image was still upstream).
 - Power policy never shuts down machines whose agent has not reported for the assignment
   (actor version unknown), e.g. an agent still configured with another service's token.
 - Agent installer: removes existing/older agent services first, retries creating the service

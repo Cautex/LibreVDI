@@ -109,8 +109,11 @@ def replace_images(repo: Path, branding: Path) -> None:
     from PIL import Image  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
 
     logo = Image.open(branding / "logo-512.png").convert("RGBA")
-    img_dir = repo / "assets" / "img"
-    for path in sorted(img_dir.iterdir()):
+    # assets/img (exe icons, installers) and crate-embedded logos, e.g. the agent configuration
+    # window (crates/gui-kit/assets/uds-128.png, include_bytes!). Only the logo files ("uds*").
+    files = sorted(p for p in (repo / "assets" / "img").iterdir())
+    files += sorted(p for p in repo.glob("crates/*/assets/uds*") if p.is_file())
+    for path in files:
         if path.suffix.lower() == ".ico":
             logo.save(path, sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
         elif path.suffix.lower() in (".png", ".bmp"):
