@@ -57,6 +57,15 @@ def main() -> int:
         else:
             _log("WARNING: reverse proxy mode on but LIBREVDI_PROXY_NETWORKS is empty (forwarders: '*')")
 
+    # Persistent desktops (LibreVDI plugin): pools must never release unused assignments
+    from uds.models import ServicePool  # pylint: disable=import-outside-toplevel
+
+    fixed = ServicePool.objects.filter(
+        service__data_type="LibreVDIProxmoxPersistentService", ignores_unused=False
+    ).update(ignores_unused=True)
+    if fixed:
+        _log(f"persistent desktops: 'ignore unused' set on {fixed} service pool(s)")
+
     # --- first-run defaults -------------------------------------------------------------
     marker = os.path.join(os.environ.get("UDS_DATA_DIR", "/var/lib/uds"), f".librevdi-defaults-v{DEFAULTS_VERSION}")
     if os.path.exists(marker):

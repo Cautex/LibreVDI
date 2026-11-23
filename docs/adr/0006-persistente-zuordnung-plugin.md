@@ -22,3 +22,14 @@ unverändert.
 - Der Typ-Name ist in der Datenbank gespeichert: Das Plugin muss in künftigen Images bleiben.
 - Kandidat für einen Upstream-PR (Option „Zuordnung bei Abmeldung behalten“ im Fixed-Service);
   wird er übernommen, kann der Typ auf den Upstream-Mechanismus migriert werden.
+
+## Nachtrag (23.11.2026, Lab-Test)
+
+Die Zuordnung ging trotzdem nach ca. 10 Minuten auf „Entfernt“. Ursache: ein zweiter Upstream-Weg,
+der Job „Unused services checker“. Er gibt bei Pools **ohne OS-Manager** zugewiesene, nicht benutzte
+Maschinen nach `checkUnusedTime` (631 s) frei – unabhängig vom Service-Typ. Ergänzt:
+
+- Pools mit diesem Service-Typ bekommen immer „Ignore unused“ (beim Speichern per Signal,
+  bestehende Pools einmalig beim Start durch `librevdi_ext.bootstrap`).
+- `UserServiceManager.release_from_logout` gibt Zuordnungen dieses Typs nicht frei
+  (Sicherheitsnetz für beide Wege).
