@@ -128,6 +128,10 @@ Section "Agent"
   nsExec::Exec 'netsh advfirewall firewall delete rule name="LibreVDI Agent"'
   nsExec::Exec 'netsh advfirewall firewall add rule name="LibreVDI Agent" dir=in action=allow protocol=TCP localport=43910 program="$INSTDIR\udsactor-service.exe"'
 
+  ; Session helper: reports logins/logoffs of every user session to the agent service.
+  ; Must start at each logon (upstream's Linux packages use an autostart entry for the same).
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "LibreVDI Agent" '"$INSTDIR\udsactor-client.exe"'
+
   ; Start menu for all users: the installer usually runs elevated under another (admin) account
   SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\LibreVDI"
@@ -149,6 +153,7 @@ Section "Uninstall"
   SetRegView 64
   ExecWait '"$INSTDIR\udsactor-service.exe" --uninstall'
   nsExec::Exec 'netsh advfirewall firewall delete rule name="LibreVDI Agent"'
+  DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "LibreVDI Agent"
   SetShellVarContext all
   Delete "$SMPROGRAMS\LibreVDI\LibreVDI Agent konfigurieren.lnk"
   RMDir "$SMPROGRAMS\LibreVDI"
