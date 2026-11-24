@@ -226,6 +226,26 @@ def brand_catalogs(locale_dir: Path) -> None:
     print(f"branding: translations compiled in {locale_dir}")
 
 
+def replace_default_images(src: str, image_b64: str, thumb_b64: str) -> str:
+    """Replaces the upstream default pool/group images (UDS logo) in ``uds/core/consts/images.py``."""
+    for name, value in (("DEFAULT_IMAGE_BASE64", image_b64), ("DEFAULT_THUMB_BASE64", thumb_b64)):
+        pattern = re.compile(name + r"(: typing\.Final\[str\] = \()(.*?)(\)\n)", re.S)
+        if not pattern.search(src):
+            raise SystemExit(f"branding: {name} not found in consts/images.py (upstream changed?)")
+        chunks = "".join(f'\n    "{value[i : i + 100]}"' for i in range(0, len(value), 100))
+        match = pattern.search(src)
+        assert match is not None
+        src = src[: match.start()] + name + match.group(1) + chunks + "\n" + match.group(3) + src[match.end() :]
+    return src
+
+
+def brand_default_images(consts_file: Path, assets: Path) -> None:
+    image = base64.b64encode((assets / "logo-128.png").read_bytes()).decode()
+    thumb = base64.b64encode((assets / "logo-64.png").read_bytes()).decode()
+    consts_file.write_text(replace_default_images(consts_file.read_text(encoding="utf-8"), image, thumb), "utf-8")
+    print(f"branding: default pool images replaced in {consts_file}")
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--static", type=Path, default=Path("/app/static"))
@@ -233,12 +253,14 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--templates-out", type=Path, default=Path("/app/templates"))
     ap.add_argument("--locale", type=Path, default=Path("/app/uds/locale"))
     ap.add_argument("--assets", type=Path, default=Path("/opt/librevdi/branding"))
+    ap.add_argument("--images-consts", type=Path, default=Path("/app/uds/core/consts/images.py"))
     args = ap.parse_args(argv)
 
     # message ids are read before the catalogs are rebranded
     changed = brand_static(args.static, args.assets, catalog_msgids(args.locale))
     brand_templates(args.templates_src, args.templates_out, changed, args.assets)
     brand_catalogs(args.locale)
+    brand_default_images(args.images_consts, args.assets)
     return 0
 
 

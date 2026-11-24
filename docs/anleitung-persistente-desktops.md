@@ -141,12 +141,18 @@ einen anderen Dienst, muss der Agent den neuen Token bekommen.
 
 **Pools → Service-Pools → Neu**
 
-| Feld | Wert |
-|---|---|
-| Name | `Windows 11 persistent` (so sieht der Benutzer die Kachel) |
-| Service | `Proxmox Lab` → `Persistent Win11` |
-| OS Manager | **keiner** |
-| Sichtbar | an |
+| Reiter | Feld | Wert |
+|---|---|---|
+| Main | Short name | `Windows 11` – **das sieht der Benutzer** auf der Kachel (leer = Name) |
+| Main | Name | `Windows 11 persistent` – interner Name in der Verwaltung |
+| Main | Base service | `Proxmox Lab` → `Persistent Win11` |
+| Main | OS Manager | **keiner** (wird bei diesem Dienst automatisch ausgegraut) |
+| Main | Publish on save | ausgegraut – nur für Klon-Pools mit Template |
+| Display | Visible | **an** (Kachel im Portal sichtbar) |
+| Display | Associated image / Pool group | leer lassen (Standardbild, Gruppe „Default“) |
+| Advanced | Allow removal by users | **aus** – sonst könnte der Benutzer seine Zuweisung selbst aufheben |
+| Advanced | Allow reset by users | nach Wunsch – Benutzer darf seine VM im Portal neu starten (hart) |
+| Advanced | Ignore unused | wird bei diesem Dienst-Typ automatisch gesetzt |
 
 → **Speichern**, dann den Pool öffnen:
 1. Reiter **Gruppen → Neu**: Authentifikator `Lokal`, Gruppe `VDI-Benutzer`

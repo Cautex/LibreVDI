@@ -41,3 +41,19 @@ def test_replace_loading_logo():
 
 def test_sri_format():
     assert b.sri(b"abc").startswith("sha384-")
+
+
+def test_replace_default_images():
+    src = (
+        "import typing\n"
+        'DEFAULT_IMAGE_BASE64: typing.Final[str] = (\n    "OLDIMAGE"\n    "MORE"\n)\n'
+        "DEFAULT_IMAGE: typing.Final[bytes] = b''\n"
+        'DEFAULT_THUMB_BASE64: typing.Final[str] = (\n    "OLDTHUMB"\n)\n'
+    )
+    out = b.replace_default_images(src, "NEWIMG", "NEWTHUMB")
+    assert "OLDIMAGE" not in out and "OLDTHUMB" not in out
+    assert 'DEFAULT_IMAGE_BASE64: typing.Final[str] = (\n    "NEWIMG"\n)\n' in out
+    assert 'DEFAULT_THUMB_BASE64: typing.Final[str] = (\n    "NEWTHUMB"\n)\n' in out
+    namespace: dict = {}
+    exec(compile(out, "images.py", "exec"), namespace)  # noqa: S102 - generated test source
+    assert namespace["DEFAULT_IMAGE_BASE64"] == "NEWIMG"
