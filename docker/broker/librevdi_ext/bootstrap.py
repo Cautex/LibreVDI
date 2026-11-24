@@ -66,6 +66,19 @@ def main() -> int:
     if fixed:
         _log(f"persistent desktops: 'ignore unused' set on {fixed} service pool(s)")
 
+    # Visible default pool group (once; deleting it in the admin UI is respected)
+    group_marker = os.path.join(os.environ.get("UDS_DATA_DIR", "/var/lib/uds"), ".librevdi-default-poolgroup-v1")
+    if not os.path.exists(group_marker):
+        from uds.models import ServicePoolGroup  # pylint: disable=import-outside-toplevel
+
+        group, created = ServicePoolGroup.objects.get_or_create(
+            name="Default", defaults={"comments": "Desktop pools without their own group (LibreVDI)", "priority": 0}
+        )
+        moved = ServicePool.objects.filter(servicesPoolGroup__isnull=True).update(servicesPoolGroup=group)
+        with open(group_marker, "w", encoding="utf-8") as f:
+            f.write("1\n")
+        _log(f"pool group 'Default' {'created' if created else 'exists'}, {moved} pool(s) without group added")
+
     # --- first-run defaults -------------------------------------------------------------
     marker = os.path.join(os.environ.get("UDS_DATA_DIR", "/var/lib/uds"), f".librevdi-defaults-v{DEFAULTS_VERSION}")
     if os.path.exists(marker):

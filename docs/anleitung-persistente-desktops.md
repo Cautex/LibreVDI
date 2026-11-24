@@ -149,7 +149,7 @@ einen anderen Dienst, muss der Agent den neuen Token bekommen.
 | Main | OS Manager | **keiner** (wird bei diesem Dienst automatisch ausgegraut) |
 | Main | Publish on save | ausgegraut – nur für Klon-Pools mit Template |
 | Display | Visible | **an** (Kachel im Portal sichtbar) |
-| Display | Associated image / Pool group | leer lassen (Standardbild, Gruppe „Default“) |
+| Display | Associated image / Pool group | leer lassen – Standardbild, Gruppe **„Default“** (unter *Pools → Pool groups* sichtbar und bearbeitbar, z. B. eigenes Bild) |
 | Advanced | Allow removal by users | **aus** – sonst könnte der Benutzer seine Zuweisung selbst aufheben |
 | Advanced | Allow reset by users | nach Wunsch – Benutzer darf seine VM im Portal neu starten (hart) |
 | Advanced | Ignore unused | wird bei diesem Dienst-Typ automatisch gesetzt |
