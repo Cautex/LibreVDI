@@ -54,6 +54,8 @@ Kurzfassung:
    - zweites CD-Laufwerk: VirtIO-Treiber-ISO
 2. **Windows 11 Pro installieren** – lokales Konto (z. B. `vdiadmin`), keine Microsoft-Anmeldung
    (bei der Kontoabfrage: *Anmeldeoptionen → Offlinekonto* bzw. `start ms-cxh:localonly`).
+   **Mit Passwort** – ein Konto ohne Passwort meldet Windows automatisch an der Konsole an und
+   muss bei jeder RDP-Anmeldung erst verdrängt werden (Windows 11 erlaubt nur eine Sitzung).
 3. In Windows (als Administrator):
    - **VirtIO Guest Tools** von der Treiber-CD installieren (`virtio-win-guest-tools.exe`,
    enthält den QEMU Guest Agent) → in Proxmox unter *Übersicht* erscheint die **IP**
@@ -172,6 +174,8 @@ einen anderen Dienst, muss der Agent den neuen Token bekommen.
    ```powershell
    sc.exe query LibreVDIAgent      # STATE: 4 RUNNING
    ```
+   Steht dort `STOPPED`: `sc.exe start LibreVDIAgent`. Der Dienst startet erst, wenn der Agent
+   konfiguriert ist – direkt nach der Installation läuft er daher noch nicht.
 4. Aus Windows **abmelden**.
 5. **Snapshot** `02-agent-bereit`.
 
@@ -193,7 +197,13 @@ und setzt den Status auf **Gültig**.
 2. Im Portal als **`max`** (Authentifikator `Lokal`) anmelden → Kachel
    **Windows 11 persistent** → Verbinden.
 3. Browser fragt „LibreVDI Client öffnen?“ → **Öffnen** (ggf. „immer erlauben“).
-4. RDP startet → Windows-Anmeldung als `max` (lokales Windows-Konto).
+4. RDP startet → Windows fragt nach Anmeldedaten und schlägt das Konto **deines PCs** vor →
+   **Weitere Optionen → Anderes Konto** → `.\max` (Punkt = Konto auf der VM) und Passwort.
+   - **Ohne Nachfrage:** im Transport *Empty creds* aus (Benutzer/Passwort leer) – dann gibt
+     LibreVDI die Portal-Anmeldung weiter; Windows-Konto `max` braucht dasselbe Passwort wie der
+     Portal-Benutzer `max`. Mit AD später automatisch.
+   - **Warnung „Unbekannter Herausgeber“:** Signaturzertifikat einmalig auf dem PC importieren
+     ([rdp-signing.md](rdp-signing.md), Schritt 3); ganz ohne Meldung per Gruppenrichtlinie.
 
 ## Teil 10 – Prüfen
 
