@@ -45,6 +45,19 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 - Umsetzung: eigene Oberfläche über die vorhandene REST-API (Upstream-Verwaltung bleibt für
   Spezialfälle erreichbar) oder Anpassung der Upstream-Oberfläche – Entscheidung als ADR
 
+### Notizen aus dem UI-Rundgang (24.11.2026)
+
+| Bereich heute | Beobachtung | Idee |
+|---|---|---|
+| Hauptmenü „Services“ | Oberbegriff passt nicht; darunter „Anbieter“, darin wieder „Services“ | Horizon-Struktur: *Settings → Servers → Hypervisors*; Pools unter *Inventory → Desktops* |
+| Anbieter-Typen „Hypervisors“ / „Cloud providers“ | Trennung für Admins unklar | zu einer Liste „Virtualization platforms“ zusammenführen; Proxmox hervorgehoben, nicht getestete Plattformen als „experimentell“ markieren oder ausblenden |
+| fehlende Plattform | Apache **CloudStack** nicht angebunden | eigener Anbieter-Plugin (später, eigene Phase) |
+| „Existing machines“: OpenGnsys, Static IP Machines | OpenGnsys (spanisches Klon-System für Schul-PCs) für LibreVDI irrelevant; „Static IP Machines“ unverständlich benannt | OpenGnsys ausblenden; umbenennen in „Physical / existing machines (by IP)“ |
+| Servers → „Unmanaged IP Server“ | Zweck nicht erkennbar | erklären bzw. nur zeigen, wenn „Static IP“-Pools genutzt werden |
+| Authentifikatoren | „IP“ unklar; welcher ist „Active Directory“? | Vorlage **„Active Directory“** (LDAP mit AD-Voreinstellungen), „IP“ als „Network-based (kiosk)“ beschriften, Entwickler-Beispiel „Sample“ ausblenden |
+| Sprache | Deutsche Upstream-Übersetzung teils holprig („Instandhaltung“ für Maintenance) | **Englisch als Standardsprache**, Deutsch umschaltbar |
+| Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |
+
 ## Phase 2f – LibreVDI Client als Desktop-App (Windows, später Linux)
 
 Wie der Horizon Client: Server eintragen, anmelden, Desktops als Liste, Doppelklick verbindet –
