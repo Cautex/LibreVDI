@@ -56,6 +56,8 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Servers → „Unmanaged IP Server“ | Zweck nicht erkennbar | erklären bzw. nur zeigen, wenn „Static IP“-Pools genutzt werden |
 | Authentifikatoren | „IP“ unklar; welcher ist „Active Directory“? | Vorlage **„Active Directory“** (LDAP mit AD-Voreinstellungen), „IP“ als „Network-based (kiosk)“ beschriften, Entwickler-Beispiel „Sample“ ausblenden |
 | Sprache | Deutsche Upstream-Übersetzung teils holprig („Instandhaltung“ für Maintenance) | **Englisch als Standardsprache**, Deutsch umschaltbar |
+| Authentifikator | Felder wie „Access“, „Priority“, „Different user for each host“ nicht selbsterklärend | Erklärtexte direkt im Formular, Sonderoptionen einklappen |
+| Rollen | nur Admin / Staff Member / User, keine eigenen Rollen | Rollenmodell wie Horizon (z. B. Helpdesk: nur Sitzungen und Zuweisungen) prüfen |
 | Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |
 
 ## Phase 2f – LibreVDI Client als Desktop-App (Windows, später Linux)
