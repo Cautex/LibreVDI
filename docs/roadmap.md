@@ -60,6 +60,7 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Sprache | Deutsche Upstream-Übersetzung teils holprig („Instandhaltung“ für Maintenance) | **Englisch als Standardsprache**, Deutsch umschaltbar |
 | Anbieter → Dienst → Service-Pool | Zwischenschritt „Dienst“ ungewohnt (Horizon: vCenter → Pool) | Upstream-Grund: ein Dienst (VMs/Template) kann mehrere Pools speisen (andere Gruppen/Protokolle). Ziel: Assistent „Desktop-Pool anlegen“ erzeugt Dienst und Pool in einem Ablauf; Maschinen direkt am Pool hinzufügen |
 | Formulare | Feld „Tags“ steht über „Name“ | Pflichtfeld Name immer zuerst |
+| Transporte | sehr viele Einzeloptionen, „direct/tunneled“ und „Connectivity → Tunnels“ getrennt | Protokoll-Profile mit Voreinstellungen (z. B. „LAN – beste Qualität“, „WAN – sparsam“), Tunnel als Option „über Gateway verbinden“ direkt am Protokoll; Geräte-Filter mit verständlichen Namen (ChromeOS, Dell Wyse) |
 | Authentifikator | Felder wie „Access“, „Priority“, „Different user for each host“ nicht selbsterklärend | Erklärtexte direkt im Formular, Sonderoptionen einklappen |
 | Rollen | nur Admin / Staff Member / User, keine eigenen Rollen | Rollenmodell wie Horizon (z. B. Helpdesk: nur Sitzungen und Zuweisungen) prüfen |
 | Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |
