@@ -28,6 +28,8 @@ vorgeschlagene Priorität.
 | 1 | **Feste Zuweisung durch den Admin** (Horizon „Assign User“): VM vorbereiten, einem Benutzer zuweisen; Schalter *Automatic assignment* am Dienst (aus = nur zugewiesene VMs) | ✅ umgesetzt, Lab-Test nach [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 2 | **Durchgehende Testanleitung** von leerem System bis Verbindung | ✅ [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 3 | Agent-Update über ältere Versionen (Dienst-Umbenennung) im Lab bestätigen | offen |
+| 4 | Dienst ohne Maschinen anlegbar, Maschinen später ergänzen; Fehler heben Zuweisungen nie auf („Keep on error“ fest an) | ✅ umgesetzt |
+| 5 | **Silent-Installation des Agents** mit Parametern (z. B. `/S /BROKER=… /TOKEN=…`), damit nicht jede VM von Hand konfiguriert werden muss (Konfiguration liegt in `HKLM\SOFTWARE\UDSActor`, Base64-JSON) | offen |
 
 ## Phase 2e – Bedienung wie bei Horizon: Oberfläche, Navigation, Begriffe
 
@@ -56,6 +58,8 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Servers → „Unmanaged IP Server“ | Zweck nicht erkennbar | erklären bzw. nur zeigen, wenn „Static IP“-Pools genutzt werden |
 | Authentifikatoren | „IP“ unklar; welcher ist „Active Directory“? | Vorlage **„Active Directory“** (LDAP mit AD-Voreinstellungen), „IP“ als „Network-based (kiosk)“ beschriften, Entwickler-Beispiel „Sample“ ausblenden |
 | Sprache | Deutsche Upstream-Übersetzung teils holprig („Instandhaltung“ für Maintenance) | **Englisch als Standardsprache**, Deutsch umschaltbar |
+| Anbieter → Dienst → Service-Pool | Zwischenschritt „Dienst“ ungewohnt (Horizon: vCenter → Pool) | Upstream-Grund: ein Dienst (VMs/Template) kann mehrere Pools speisen (andere Gruppen/Protokolle). Ziel: Assistent „Desktop-Pool anlegen“ erzeugt Dienst und Pool in einem Ablauf; Maschinen direkt am Pool hinzufügen |
+| Formulare | Feld „Tags“ steht über „Name“ | Pflichtfeld Name immer zuerst |
 | Authentifikator | Felder wie „Access“, „Priority“, „Different user for each host“ nicht selbsterklärend | Erklärtexte direkt im Formular, Sonderoptionen einklappen |
 | Rollen | nur Admin / Staff Member / User, keine eigenen Rollen | Rollenmodell wie Horizon (z. B. Helpdesk: nur Sitzungen und Zuweisungen) prüfen |
 | Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |

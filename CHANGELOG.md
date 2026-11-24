@@ -61,6 +61,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 ### Added (Phase 2d)
 - Persistent desktops: switch *Automatic assignment* (off = users only get the machine an
   administrator assigned via "Assign service", like dedicated pools without automatic assignment).
+- Persistent service: machines optional (create the service first, add machines later); access
+  errors never free a machine ("Keep on error" always on, field removed from the form).
 - Step-by-step guide from an empty system to a connection with fixed user assignment
   (`docs/anleitung-persistente-desktops.md`); roadmap: UI/navigation (2e), desktop client app (2f).
 

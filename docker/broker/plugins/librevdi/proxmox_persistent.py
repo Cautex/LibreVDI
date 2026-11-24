@@ -24,7 +24,7 @@ import typing
 
 from django.db.models.signals import pre_save
 from django.utils.translation import gettext_noop as _
-from uds.core import types
+from uds.core import exceptions, types
 from uds.core.exceptions.services import MaxServicesReachedError
 from uds.core.managers.userservice import UserServiceManager
 from uds.core.ui import gui
@@ -53,9 +53,18 @@ class ProxmoxServicePersistent(ProxmoxServiceFixed):
     # Same GUI as fixed machines (declared explicitly, as upstream does for inherited fields)
     token = ProxmoxServiceFixed.token
     pool = ProxmoxServiceFixed.pool
-    machines = ProxmoxServiceFixed.machines
+    # Like a dedicated pool: the service may be created first and machines added later
+    machines = gui.MultiChoiceField(
+        label=_("Machines"),
+        order=30,
+        tooltip=_("Machines of this service. Can be left empty and added later."),
+        required=False,
+        tab=types.ui.Tab.MACHINE,
+        rows=10,
+    )
     use_snapshots = ProxmoxServiceFixed.use_snapshots
-    maintain_on_error = ProxmoxServiceFixed.maintain_on_error
+    # "Keep on error" is not offered: upstream would free the machine (and lose the user's
+    # assignment) on any access error, e.g. while Proxmox is briefly unreachable.
 
     # Like "automatic assignment" of dedicated pools in commercial VDI: off = only machines an
     # administrator assigned (Service pool -> Assigned services -> Assign service) are handed out.
@@ -97,6 +106,24 @@ class ProxmoxServicePersistent(ProxmoxServiceFixed):
         tab=types.ui.Tab.ADVANCED,
         required=True,
     )
+
+    @typing.override
+    def should_maintain_on_error(self) -> bool:
+        return True  # never free a persistent machine because of an error
+
+    @typing.override
+    def initialize(self, values: "types.core.ValuesType") -> None:
+        if values and not self.machines.value:
+            # allowed for persistent desktops, except removing the last machines while assigned
+            with self._assigned_access() as assigned_vms:
+                if assigned_vms:
+                    raise exceptions.ui.ValidationError(
+                        "Cannot remove machines with assigned services: "
+                        + ", ".join(self.get_name(m) or m for m in sorted(assigned_vms))
+                    )
+            self.token.value = self.token.value.strip()
+            return
+        super().initialize(values)
 
     @typing.override
     def is_removable_on_logout(self) -> bool:

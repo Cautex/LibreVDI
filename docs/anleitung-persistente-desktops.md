@@ -109,11 +109,14 @@ Das ist die **Anmeldung am LibreVDI-Portal**. Die Anmeldung *in Windows* ist dav
 |---|---|---|
 | Main | Name | `Persistent Win11` |
 | Main | Service-Token | Zufallswert, z. B. Ausgabe von `openssl rand -hex 24` – **notieren** |
-| Maschine | Resource Pool | `librevdi` |
-| Maschine | Machines | `vdi-win11-01` |
-| Maschine | Use snapshots | aus |
+| Maschine | Resource Pool | `librevdi` – der **Proxmox-Ressourcenpool** aus Teil 1 (Rechenzentrum → Berechtigungen → Pools); er begrenzt, welche VMs zur Auswahl stehen |
+| Maschine | Machines | `vdi-win11-01` – darf auch leer bleiben und später ergänzt werden (Dienst bearbeiten) |
+| Erweitert | Use snapshots | **aus** – an würde die VM nach jeder Nutzung auf einen Snapshot zurücksetzen (nicht persistent) |
 | Erweitert | **Automatic assignment** | **aus** (nur vom Admin zugewiesene VMs) |
 | Erweitert | After logoff | `Do nothing` (für den ersten Test) |
+
+„Keep on error“ gibt es bei diesem Dienst-Typ nicht: Fehler an einer VM heben die Zuweisung nie
+auf (beim Upstream-Typ „Fixed Machines“ würde die VM sonst freigegeben).
 
 → **Speichern**.
 
