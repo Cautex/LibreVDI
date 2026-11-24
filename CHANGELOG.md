@@ -46,6 +46,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Agent installer creates the start menu entry for all users (was only for the elevating admin
+  account, so a normal user did not see "LibreVDI Agent konfigurieren").
 - Pool group "Default" exists as a real, editable group (image, comment, priority); pools without
   a group are put into it on save, existing ones once on start (upstream: hidden virtual group).
 - Default image of pools and pool groups is the LibreVDI logo (was the UDS logo).
