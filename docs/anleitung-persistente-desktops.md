@@ -228,6 +228,7 @@ und setzt den Status auf **Gültig**.
 | 4 | Zweiten Portal-Benutzer `erika` (Gruppe `VDI-Benutzer`) anlegen, als `erika` verbinden | Meldung, dass kein Dienst verfügbar ist – es wird **keine** VM vergeben |
 | 5 | Energie-Richtlinie: im Dienst *After logoff* = `Shut down machine after delay`, 5 min; abmelden | nach ca. 5–7 min ist die VM in Proxmox aus |
 | 6 | Bei ausgeschalteter VM als `max` verbinden | VM startet von selbst, nach 1–2 min verbunden |
+| 7b | Wartung **eines Pools**: Pool bearbeiten → Feld **Tags** → `maintenance` (oder `wartung`) eintragen, speichern | nur dieser Pool „in Wartung“ (Portal und Pool-Liste), andere Pools normal; Tag entfernen = Wartung aus |
 | 7 | Wartung: **Services → Anbieter → Proxmox Lab → Instandhaltung** an | Pool im Portal „in Wartung“, keine neuen Verbindungen, bestehende Sitzungen bleiben; Energie-Richtlinie pausiert; danach wieder aus |
 
 Ergebnis bitte als Tabelle (OK / Fehler + Screenshot) zurückmelden.

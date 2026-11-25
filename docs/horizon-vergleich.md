@@ -55,6 +55,11 @@ und wartet, bis der Agent bereit ist (etwa 1–2 Minuten). Nur *getrennte* Sitzu
 geschlossen ohne Abmelden) gelten weiter als „in Benutzung“ und werden nicht heruntergefahren.
 Die Prüfung läuft alle zwei Minuten; die Aktionen stehen im Log des Dienstes bzw. der Zuweisung.
 
+**Wartung eines einzelnen Pools** (z. B. neue Software auf den VMs eines Pools): im Pool das Feld
+**Tags** auf `maintenance` (oder `wartung`) setzen. Der Pool erscheint im Portal „in Wartung“,
+neue Verbindungen sind gesperrt, laufende Sitzungen bleiben; die Energie-Richtlinie pausiert.
+Tag entfernen beendet die Wartung.
+
 **Wartung an den VMs** (z. B. Agent aktualisieren über die Proxmox-Konsole): den **Anbieter in den
 Wartungsmodus** setzen (Dienste → Anbieter → Wartung). Solange greift die Energie-Richtlinie nicht
 und Benutzer können sich nicht verbinden – wie der Wartungsmodus bei Horizon.

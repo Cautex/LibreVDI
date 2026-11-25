@@ -13,7 +13,8 @@ Disconnected sessions (RDP window closed without logoff) count as "in use" and a
 Machines whose agent never reported to the broker for this assignment (actor version unknown,
 e.g. agent configured with the token of another service) are never shut down: without agent
 reports the broker cannot know whether someone is logged in.
-Nothing happens while the provider is in maintenance mode (e.g. while an admin works on the VMs).
+Nothing happens while the provider or a pool of the service is in maintenance (e.g. while an admin
+works on the VMs).
 """
 
 from __future__ import annotations
@@ -93,6 +94,8 @@ def _job_class() -> type:
         def _apply(self, service_model: typing.Any) -> None:
             if service_model.provider.maintenance_mode:  # like upstream: no automatic actions
                 return
+            if any(pool.is_in_maintenance() for pool in service_model.deployedServices.all()):
+                return  # a pool of this service is in maintenance (tag "maintenance")
             service = service_model.get_instance()
             policy = service.power_policy.value
             if policy not in (POLICY_SHUTDOWN, POLICY_ALWAYS_ON):

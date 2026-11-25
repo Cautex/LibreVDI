@@ -73,6 +73,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   the power policy pauses while the provider is in maintenance mode.
 
 ### Added (Phase 2d)
+- Maintenance per pool: tag `maintenance` (or `wartung`) on a pool puts only this pool into
+  maintenance (portal, admin list, no new connections, power policy paused); upstream only had
+  provider-wide maintenance.
 - Silent installation of the unmanaged agent: `/S /BROKER=<host> /TOKEN=<token>` (optional
   `/VERIFYSSL=0`, `/LOGLEVEL=`) writes the configuration in the agent's own format (registry,
   Base64 JSON, protected key) and starts the service; also `configure-agent.ps1` on its own.

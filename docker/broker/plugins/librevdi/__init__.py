@@ -8,6 +8,7 @@ file has to be changed.
 from . import assigned_view as assigned_view  # noqa: F401
 from . import downloads as downloads  # noqa: F401
 from . import pool_groups as pool_groups  # noqa: F401
+from . import pool_maintenance as pool_maintenance  # noqa: F401
 from . import power_policy as power_policy  # noqa: F401, E402
 from . import proxmox_persistent as proxmox_persistent  # noqa: F401
 
