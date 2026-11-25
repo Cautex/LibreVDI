@@ -48,6 +48,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
 - Assigned services: "Owner" is now "Assigned user", new column "Logged-in user" (who is actually
   logged in on the machine while it is in use), "Src Host/Ip" renamed to "Last client (host/IP)".
+- Removed machines disappear from "Assigned services" immediately (upstream keeps them greyed out
+  for `keepInfoTime`, 4 h).
 - Portal message when a user gets no machine: "No desktop is available for you …" instead of
   "Maximum services limit reached" (German translation included).
 - Agent installer registers the session helper (`udsactor-client.exe`) to start at every logon.

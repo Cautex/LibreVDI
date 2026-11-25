@@ -29,6 +29,7 @@ vorgeschlagene Priorität.
 | 2 | **Durchgehende Testanleitung** von leerem System bis Verbindung | ✅ [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 3 | Agent-Update über ältere Versionen (Dienst-Umbenennung) im Lab bestätigen | offen |
 | 6 | Übersicht wie Horizon: Spalten **Zugewiesener Benutzer** und **Angemeldeter Benutzer**; klare Portal-Meldung „kein Desktop verfügbar“ statt „Servicelimit erreicht“ | ✅ umgesetzt |
+| 9 | Entfernte Maschinen sofort aus der Liste „Zugewiesene Services“ ausblenden (Upstream zeigt sie 4 h ausgegraut) | ✅ umgesetzt |
 | 8 | **Sitzungen und VMs verwalten** wie bei Horizon: Abmelden, Trennen, Nachricht senden, Gast-Neustart (heute nur „Zurücksetzen“ = harter Reset und „Besitzer wechseln“) | offen |
 | 7 | **Wartung pro Pool** (statt nur ganzer Anbieter); Energie-Richtlinie am Pool statt am Dienst (kommt mit dem Pool-Assistenten aus 2e, wo Dienst und Pool eins werden) | offen |
 | 4 | Dienst ohne Maschinen anlegbar, Maschinen später ergänzen; Fehler heben Zuweisungen nie auf („Keep on error“ fest an) | ✅ umgesetzt |
@@ -68,6 +69,7 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Transporte | sehr viele Einzeloptionen, „direct/tunneled“ und „Connectivity → Tunnels“ getrennt | Protokoll-Profile mit Voreinstellungen (z. B. „LAN – beste Qualität“, „WAN – sparsam“), Tunnel als Option „über Gateway verbinden“ direkt am Protokoll; Geräte-Filter mit verständlichen Namen (ChromeOS, Dell Wyse) |
 | Authentifikator | Felder wie „Access“, „Priority“, „Different user for each host“ nicht selbsterklärend | Erklärtexte direkt im Formular, Sonderoptionen einklappen |
 | Rollen | nur Admin / Staff Member / User, keine eigenen Rollen | Rollenmodell wie Horizon (z. B. Helpdesk: nur Sitzungen und Zuweisungen) prüfen |
+| Maschinen-Übersicht | keine zentrale Liste aller Maschinen (persistent und Klone) mit Gesamtzahl; nur pro Anbieter unter „Usage“ | *Inventory → Machines*: alle Maschinen aller Pools mit Zahl (z. B. „55 in Betrieb“), Pool, zugewiesener/angemeldeter Benutzer, Status, Agent; Kennzahlen im Dashboard |
 | Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |
 
 ## Phase 2f – LibreVDI Client als Desktop-App (Windows, später Linux)
