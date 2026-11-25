@@ -73,6 +73,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   the power policy pauses while the provider is in maintenance mode.
 
 ### Added (Phase 2d)
+- Self-test of all LibreVDI extensions (`python -m librevdi_ext.selfcheck`): checks the OpenUDS
+  contract (classes, method signatures, model fields, settings) and that every hook is active; runs
+  in broker-init on every start (strict by default, `LIBREVDI_SELFCHECK=warn`) and in the CI smoke
+  test. ADR-0008 documents the customization levels around the OpenUDS core.
 - Maintenance per pool: tag `maintenance` (or `wartung`) on a pool puts only this pool into
   maintenance (portal, admin list, no new connections, power policy paused); upstream only had
   provider-wide maintenance.

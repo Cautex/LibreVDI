@@ -12,3 +12,4 @@ nicht nachträglich umgeschrieben, sondern durch einen neuen ADR ersetzt („Ers
 | [0005](0005-sprachen.md) | Programmiersprachen | angenommen |
 | [0006](0006-persistente-zuordnung-plugin.md) | Persistente Zuordnung über ein LibreVDI-Plugin | angenommen |
 | [0007](0007-releases.md) | Releases als Entwurf mit GHCR-Images und gebündelten Installern | angenommen |
+| [0008](0008-anpassungsebenen.md) | Anpassungsebenen rund um den OpenUDS-Kern | angenommen |

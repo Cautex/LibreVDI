@@ -86,6 +86,14 @@ fi
 expect_status /healthz 404
 expect_status /readyz 404
 
+# Self-test of the LibreVDI extensions (OpenUDS contract + active hooks, ADR-0008)
+if docker compose exec -T broker-web python -m librevdi_ext.selfcheck --quiet; then
+  echo "ok    LibreVDI selfcheck"
+else
+  echo "FAIL  LibreVDI selfcheck"
+  fail=1
+fi
+
 # REST login as super user
 resp=$(login "${LIBREVDI_ROOT_PASSWORD:?}")
 code=${resp##*$'\n'}

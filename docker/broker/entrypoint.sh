@@ -47,6 +47,7 @@ case "$cmd" in
     python manage.py migrate --noinput
     python manage.py createcachetable
     python -m librevdi_ext.bootstrap
+    python -m librevdi_ext.selfcheck --quiet   # OpenUDS contract + LibreVDI hooks (ADR-0008)
     log "init done"
     ;;
   web)

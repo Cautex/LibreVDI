@@ -174,7 +174,10 @@ Vorher eine Datensicherung machen.
 
 ## Fehlersuche
 
-- `docker compose logs broker-init` – Schlüssel, Migrationen, Konfiguration
+- `docker compose logs broker-init` – Schlüssel, Migrationen, Konfiguration, Selbsttest
+  (`librevdi: selfcheck …/… ok`; bei `FAIL` hat ein OpenUDS-Update eine LibreVDI-Erweiterung
+  gebrochen, siehe ADR-0008 – vorübergehend `LIBREVDI_SELFCHECK=warn` in `.env`)
+- Selbsttest von Hand: `docker compose exec broker-web python -m librevdi_ext.selfcheck`
 - `docker compose logs -f broker-web broker-tasks`
 - Liveness/Readiness im Container: `docker compose exec broker-web python -m librevdi_ext.healthcheck`
 
