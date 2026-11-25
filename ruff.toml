@@ -10,3 +10,5 @@ ignore = ["S101"]  # assert in tests
 [lint.per-file-ignores]
 # settings overlay injects names from the upstream sample at runtime
 "docker/broker/settings.py" = ["F821", "E402"]
+# tests call fixed tools (dpkg-deb, ...) with argument lists
+"tests/**" = ["S603", "S607", "S103"]

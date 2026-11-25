@@ -1,0 +1,86 @@
+name: Linux builds (agent + client)
+
+# Builds the upstream OpenUDS 5.0 launcher (client) and actor (agent) for Linux with the upstream
+# Docker builders, rebrands the packages as LibreVDI and tests the installation in a clean
+# container of each distribution. Native packages per distribution (glibc and FFmpeg differ).
+# Also called by release.yml with the release version.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - "upstream/uds-actor"
+      - "upstream/uds-client"
+      - "packaging/linux/**"
+      - "packaging/windows/brand_upstream.py"
+      - "branding/**"
+      - ".github/workflows/linux-builds.yml"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Package version (default: 0.1.0-dev.<run number>)"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.component }} ${{ matrix.distro }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [client, agent]
+        distro: [Debian12, Debian13, Ubuntu2404]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Version
+        run: |
+          version="${{ inputs.version }}"
+          [ -n "$version" ] || version="0.1.0-dev.${{ github.run_number }}"
+          echo "LIBREVDI_VERSION=$version" >> "$GITHUB_ENV"
+          echo "version $version"
+      - name: Apply LibreVDI branding (sources, icons, translations)
+        run: |
+          python3 -m pip install --quiet --break-system-packages polib pillow
+          crate=upstream/uds-${{ matrix.component == 'client' && 'client' || 'actor' }}
+          python3 packaging/windows/brand_upstream.py ${{ matrix.component }} "$crate" branding
+      - name: Prepare builder
+        id: builder
+        run: |
+          dir=$(packaging/linux/prepare-builder.sh ${{ matrix.component }} ${{ matrix.distro }})
+          prefix=${{ matrix.component == 'client' && 'udslauncher' || 'udsactor' }}
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          echo "image=rust-builder-$prefix:${{ matrix.distro }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      # builder images (the client one compiles FreeRDP) with a layer cache between runs
+      - name: Builder image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.builder.outputs.dir }}
+          tags: ${{ steps.builder.outputs.image }}
+          load: true
+          cache-from: type=gha,scope=linux-${{ matrix.component }}-${{ matrix.distro }}
+          cache-to: type=gha,mode=max,scope=linux-${{ matrix.component }}-${{ matrix.distro }}
+      - name: Mark builder image as current (no rebuild by rustbuilder.py)
+        run: touch "${{ steps.builder.outputs.dir }}/build.stamp"
+      - name: Build and rebrand packages
+        run: packaging/linux/build-linux.sh ${{ matrix.component }} ${{ matrix.distro }} "$LIBREVDI_VERSION" out
+      - name: Test installation in a clean ${{ matrix.distro }} container
+        run: packaging/linux/test-install.sh ${{ matrix.distro }} out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: librevdi-${{ matrix.component }}-linux-${{ matrix.distro }}
+          path: out/*.deb
+          retention-days: 14
