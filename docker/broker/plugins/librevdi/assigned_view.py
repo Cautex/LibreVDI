@@ -1,0 +1,61 @@
+"""Assigned services overview like in commercial VDI: assigned user vs. logged-in user.
+
+Upstream shows only the owner ("Owner") and "In Use". When someone else is logged in on the machine
+(a local administrator, an old session) the machine is "in use" although its owner is not working
+on it. LibreVDI adds the column "Logged-in user" (the Windows/Linux user name reported by the agent
+at the last login, shown while the machine is in use) and renames "Owner" to "Assigned user".
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import typing
+
+from django.utils.translation import gettext_lazy as _
+from uds.core.types.rest import TableField
+from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
+
+
+@dataclasses.dataclass
+class LibreVDIUserServiceItem(UserServiceItem):
+    logged_user: str = ""
+
+
+def logged_user(in_use: bool, props: dict[str, typing.Any]) -> str:
+    return str(props.get("last_username") or "") if in_use else ""
+
+
+_original_item = AssignedUserService.userservice_item
+_original_table = AssignedUserService.get_table
+
+
+def _userservice_item(
+    item: typing.Any, props: dict[str, typing.Any] | None = None, is_cache: bool = False
+) -> typing.Any:
+    val = _original_item(item, props, is_cache)
+    if is_cache:
+        return val
+    values = {f.name: getattr(val, f.name) for f in dataclasses.fields(val)}
+    return LibreVDIUserServiceItem(
+        **values, logged_user=logged_user(item.in_use, props if props is not None else dict(item.properties))
+    )
+
+
+def _get_table(self: AssignedUserService, parent: typing.Any) -> typing.Any:
+    table = _original_table(self, parent)
+    for index, field in enumerate(table.fields):
+        if field.name == "owner":
+            field.title = str(_("Assigned user"))
+            table.fields.insert(index + 1, TableField(name="logged_user", title=str(_("Logged-in user"))))
+            break
+    return table
+
+
+def register() -> None:
+    if AssignedUserService.userservice_item is not _userservice_item:  # type: ignore[comparison-overlap]
+        AssignedUserService.userservice_item = staticmethod(_userservice_item)  # type: ignore[assignment]
+    if AssignedUserService.get_table is not _get_table:
+        AssignedUserService.get_table = _get_table  # type: ignore[method-assign]
+
+
+register()

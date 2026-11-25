@@ -209,13 +209,13 @@ und setzt den Status auf **Gültig**.
 
 | # | Test | Erwartung |
 |---|---|---|
-| 1 | Verbunden: *Zugewiesene Services* ansehen | Inhaber `max@Lokal`, **In Benutzung: Ja**, **Actor-Version** gefüllt, Src Host = dein PC |
-| 2 | In Windows **abmelden**, 15 min warten | Eintrag bleibt, Status **Gültig**, In Benutzung **Nein** |
+| 1 | Verbunden: *Zugewiesene Services* ansehen | Zugewiesener Benutzer `max@Lokal`, **In Benutzung: Ja**, **Angemeldeter Benutzer** `max`, **Actor-Version** gefüllt, Src Host = dein PC |
+| 2 | In Windows **abmelden**, 15 min warten | Eintrag bleibt, Status **Gültig**, In Benutzung **Nein**. Voraussetzung: kein Konto meldet sich automatisch an (Konto ohne Passwort / Autologon) – sonst zeigt „Angemeldeter Benutzer“ dieses Konto und die VM bleibt „in Benutzung“ |
 | 3 | Erneut als `max` verbinden | dieselbe VM `vdi-win11-01` |
 | 4 | Zweiten Portal-Benutzer `erika` (Gruppe `VDI-Benutzer`) anlegen, als `erika` verbinden | Meldung, dass kein Dienst verfügbar ist – es wird **keine** VM vergeben |
 | 5 | Energie-Richtlinie: im Dienst *After logoff* = `Shut down machine after delay`, 5 min; abmelden | nach ca. 5–7 min ist die VM in Proxmox aus |
 | 6 | Bei ausgeschalteter VM als `max` verbinden | VM startet von selbst, nach 1–2 min verbunden |
-| 7 | Wartung: **Services → Anbieter → Proxmox Lab → Instandhaltung** an | Energie-Richtlinie pausiert, Portal-Verbindungen gesperrt; danach wieder aus |
+| 7 | Wartung: **Services → Anbieter → Proxmox Lab → Instandhaltung** an | Pool im Portal „in Wartung“, keine neuen Verbindungen, bestehende Sitzungen bleiben; Energie-Richtlinie pausiert; danach wieder aus |
 
 Ergebnis bitte als Tabelle (OK / Fehler + Screenshot) zurückmelden.
 

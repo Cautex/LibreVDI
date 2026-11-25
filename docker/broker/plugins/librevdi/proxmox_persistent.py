@@ -23,10 +23,12 @@ import logging
 import typing
 
 from django.db.models.signals import pre_save
+from django.utils.translation import gettext_lazy
 from django.utils.translation import gettext_noop as _
 from uds.core import exceptions, types
 from uds.core.exceptions.services import MaxServicesReachedError
 from uds.core.managers.userservice import UserServiceManager
+from uds.core.types import errors
 from uds.core.ui import gui
 from uds.models import ServicePool
 from uds.services.Proxmox.provider import ProxmoxProvider
@@ -169,6 +171,13 @@ def _create_assigned_for(self: UserServiceManager, service_pool: typing.Any, use
     return _original_create_assigned_for(self, service_pool, user)
 
 
+# Portal message when a user gets no machine (replaces "Maximum services limit reached", which
+# reads like a server problem). Must match NO_DESKTOP_MSG in branding/apply_branding.py.
+NO_DESKTOP_MSG = (
+    "No desktop is available for you: none is assigned to you or all are in use. Please contact your administrator."
+)
+
+
 def register() -> None:
     """Offer the service type in the Proxmox provider and install the hooks (idempotent)."""
     if not any(t.type_type == TYPE_TYPE for t in ProxmoxProvider.offers):
@@ -176,6 +185,7 @@ def register() -> None:
     pre_save.connect(_keep_unused_assignments, sender=ServicePool, dispatch_uid="librevdi-persistent-unused")
     if UserServiceManager.release_from_logout is not _release_from_logout:
         UserServiceManager.release_from_logout = _release_from_logout  # type: ignore[method-assign]
+    errors.ERROR_STRINGS[errors.Error.MAX_SERVICES_REACHED.value] = gettext_lazy(NO_DESKTOP_MSG)
     if UserServiceManager.create_assigned_for is not _create_assigned_for:
         UserServiceManager.create_assigned_for = _create_assigned_for  # type: ignore[method-assign]
 

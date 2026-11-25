@@ -1,3 +1,5 @@
+import os
+
 import apply_branding as b
 
 
@@ -57,3 +59,28 @@ def test_replace_default_images():
     namespace: dict = {}
     exec(compile(out, "images.py", "exec"), namespace)  # noqa: S102 - generated test source
     assert namespace["DEFAULT_IMAGE_BASE64"] == "NEWIMG"
+
+
+def test_extra_translations_match_plugin_text():
+    import re
+
+    plugin = open(  # noqa: SIM115
+        os.path.join(
+            os.path.dirname(__file__), "..", "..", "docker", "broker", "plugins", "librevdi", "proxmox_persistent.py"
+        ),
+        encoding="utf-8",
+    ).read()
+    block = re.search(r"NO_DESKTOP_MSG = \(\n(.*?)\n\)", plugin, re.S).group(1)
+    plugin_msg = "".join(re.findall(r'"([^"]*)"', block))
+    assert plugin_msg == b.NO_DESKTOP_MSG
+    assert b.NO_DESKTOP_MSG in b.EXTRA_TRANSLATIONS["de"]
+
+
+def test_add_extra_translations():
+    import polib
+
+    po = polib.POFile()
+    po.append(polib.POEntry(msgid="Assigned user", msgstr="alt"))
+    added = b.add_extra_translations(po, {"Assigned user": "Zugewiesener Benutzer", "New": "Neu"})
+    assert added == 1
+    assert {e.msgid: e.msgstr for e in po} == {"Assigned user": "Zugewiesener Benutzer", "New": "Neu"}

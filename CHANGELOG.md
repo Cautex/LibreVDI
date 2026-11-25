@@ -46,6 +46,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   its user logged off, or keep all machines powered on (job every two minutes). Stopped machines
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
+- Assigned services: "Owner" is now "Assigned user", new column "Logged-in user" (who is actually
+  logged in on the machine while it is in use).
+- Portal message when a user gets no machine: "No desktop is available for you …" instead of
+  "Maximum services limit reached" (German translation included).
 - Agent installer registers the session helper (`udsactor-client.exe`) to start at every logon.
   Without it logins were never reported ("In use" stayed "No", actor version unknown, the
   unused-checker and power policy saw machines as unused).

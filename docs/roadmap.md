@@ -28,6 +28,8 @@ vorgeschlagene Priorität.
 | 1 | **Feste Zuweisung durch den Admin** (Horizon „Assign User“): VM vorbereiten, einem Benutzer zuweisen; Schalter *Automatic assignment* am Dienst (aus = nur zugewiesene VMs) | ✅ umgesetzt, Lab-Test nach [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 2 | **Durchgehende Testanleitung** von leerem System bis Verbindung | ✅ [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 3 | Agent-Update über ältere Versionen (Dienst-Umbenennung) im Lab bestätigen | offen |
+| 6 | Übersicht wie Horizon: Spalten **Zugewiesener Benutzer** und **Angemeldeter Benutzer**; klare Portal-Meldung „kein Desktop verfügbar“ statt „Servicelimit erreicht“ | ✅ umgesetzt |
+| 7 | **Wartung pro Pool** (statt nur ganzer Anbieter); Energie-Richtlinie am Pool statt am Dienst (kommt mit dem Pool-Assistenten aus 2e, wo Dienst und Pool eins werden) | offen |
 | 4 | Dienst ohne Maschinen anlegbar, Maschinen später ergänzen; Fehler heben Zuweisungen nie auf („Keep on error“ fest an) | ✅ umgesetzt |
 | 5 | **Silent-Installation des Agents** mit Parametern (z. B. `/S /BROKER=… /TOKEN=…`), damit nicht jede VM von Hand konfiguriert werden muss (Konfiguration liegt in `HKLM\SOFTWARE\UDSActor`, Base64-JSON) | offen |
 
@@ -84,6 +86,8 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 - Dedicated-Variante: Klon bleibt beim Benutzer (OS-Manager „behalten“), Energie-Richtlinie
   auch für Klone
 - Image-Update per Publikation (neue Template-Version, Klone werden schrittweise ersetzt)
+- Pool-Steuerung wie Horizon: **Provisioning an/aus**, **Pool aktivieren/deaktivieren**, Wartung
+  pro Pool, Image tauschen („Push Image“) mit Zeitplan und „nach Abmeldung ersetzen / sofort“
 - Domain-Join-Variante (AD im Lab), Profile (FSLogix/Roaming) dokumentieren
 
 ## Phase 4 – Linux

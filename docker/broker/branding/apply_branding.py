@@ -24,6 +24,7 @@ import io
 import re
 import shutil
 import sys
+import typing
 from pathlib import Path
 
 PROJECT_URL = "https://github.com/Cautex/LibreVDI"
@@ -191,6 +192,37 @@ def brand_templates(src: Path, out: Path, changed: dict[str, tuple[str, str]], a
         print(f"branding: template uds/{app}/index.html written")
 
 
+# Texts introduced by LibreVDI plugins (server side, catalog "django"): language -> msgid -> msgstr.
+# The msgids must match the strings in docker/broker/plugins/librevdi exactly.
+NO_DESKTOP_MSG = (
+    "No desktop is available for you: none is assigned to you or all are in use. Please contact your administrator."
+)
+EXTRA_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "de": {
+        NO_DESKTOP_MSG: (
+            "Für Sie ist kein Desktop verfügbar: Ihnen ist keiner zugewiesen oder alle sind belegt. "
+            "Bitte wenden Sie sich an Ihren Administrator."
+        ),
+        "Assigned user": "Zugewiesener Benutzer",
+        "Logged-in user": "Angemeldeter Benutzer",
+    },
+}
+
+
+def add_extra_translations(po: typing.Any, translations: dict[str, str]) -> int:
+    import polib  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+
+    existing = {e.msgid: e for e in po if not e.msgctxt}
+    added = 0
+    for msgid, msgstr in translations.items():
+        if msgid in existing:
+            existing[msgid].msgstr = msgstr
+        else:
+            po.append(polib.POEntry(msgid=msgid, msgstr=msgstr))
+            added += 1
+    return added
+
+
 def brand_catalogs(locale_dir: Path) -> None:
     import polib  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
 
@@ -221,6 +253,9 @@ def brand_catalogs(locale_dir: Path) -> None:
             if (add.msgctxt, add.msgid) not in existing:
                 po.append(add)
                 existing.add((add.msgctxt, add.msgid))
+        lang = po_path.parent.parent.name
+        if po_path.name == "django.po" and lang in EXTRA_TRANSLATIONS:
+            add_extra_translations(po, EXTRA_TRANSLATIONS[lang])
         po.save(str(po_path))
         po.save_as_mofile(str(po_path.with_suffix(".mo")))
     print(f"branding: translations compiled in {locale_dir}")
