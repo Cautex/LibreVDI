@@ -74,13 +74,17 @@ jobs:
           --cargo-dir upstream/uds-actor
           --fallback-text BSD-3-Clause=upstream/uds-actor/LICENSE
           --out notices/THIRD-PARTY-NOTICES.txt --summary notices/third-party-agent.md
+      - name: NSIS (cached, Chocolatey with retries)
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: nsis-${{ runner.os }}-v1
+      - name: Install NSIS
+        shell: pwsh
+        run: packaging\windows\install-nsis.ps1
       - name: Build installers (NSIS)
         shell: pwsh
         run: |
-          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
-            choco install nsis -y --no-progress
-            $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
-          }
           $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
           foreach ($variant in @("unmanaged", "managed")) {
             makensis /V2 /INPUTCHARSET UTF8 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
@@ -189,13 +193,17 @@ jobs:
             --extra "Microsoft Visual C++ Runtime|Microsoft Visual Studio Distributable Code|packaging\windows\notices\msvc-runtime.txt" `
             --out notices\THIRD-PARTY-NOTICES.txt --summary notices\third-party-client.md
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: NSIS (cached, Chocolatey with retries)
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: nsis-${{ runner.os }}-v1
+      - name: Install NSIS
+        shell: pwsh
+        run: packaging\windows\install-nsis.ps1
       - name: Build installer (NSIS)
         shell: pwsh
         run: |
-          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
-            choco install nsis -y --no-progress
-            $env:PATH += ";${env:ProgramFiles(x86)}\NSIS"
-          }
           $notices = Resolve-Path notices\THIRD-PARTY-NOTICES.txt
           makensis /V2 /INPUTCHARSET UTF8 /DVERSION=$env:LIBREVDI_VERSION /DVIVERSION=$env:LIBREVDI_VIVERSION `
             "/DNOTICES=$notices" packaging\windows\client.nsi
