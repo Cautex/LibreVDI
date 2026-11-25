@@ -47,7 +47,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: pip install pytest cryptography
+        run: pip install pytest cryptography polib
       - name: Unit tests (LibreVDI extensions)
         run: python -m pytest -q tests/unit
 
