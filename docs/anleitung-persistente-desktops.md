@@ -62,13 +62,22 @@ Kurzfassung:
    - **Remotedesktop aktivieren**: Einstellungen → System → Remotedesktop → Ein
    - Netzwerkprofil **Privat**; Firewall-Regeln für RDP sind damit aktiv
    - Windows-Updates einspielen, neu starten
-4. **Benutzer für den Desktop anlegen** (der Mensch, dem die VM gehören soll), z. B. `max`:
+4. **Keine automatischen Anmeldungen** – sonst ist beim Verbinden schon ein anderer Benutzer
+   (meist der Admin) angemeldet, LibreVDI zeigt ihn als „angemeldet“, und RDP muss ihn verdrängen.
+   Windows 11 meldet nach Neustart/Update den letzten Benutzer standardmäßig automatisch an und
+   sperrt (der Sperrbildschirm sieht in der Proxmox-Konsole aus wie der Anmeldebildschirm):
+   ```
+   reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d 0 /f
+   reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableAutomaticRestartSignOn /t REG_DWORD /d 1 /f
+   ```
+   Auf dem eigenen PC keine RDP-Anmeldedaten für die VM speichern (prüfen: `cmdkey /list`).
+5. **Benutzer für den Desktop anlegen** (der Mensch, dem die VM gehören soll), z. B. `max`:
    ```powershell
    net user max <Passwort> /add
    net localgroup "Remotedesktopbenutzer" max /add
    ```
    (Später mit AD entfällt das – dann meldet sich der Domänenbenutzer an.)
-5. **Snapshot** in Proxmox: VM → Snapshots → *Snapshot erstellen*, Name `01-windows-basis`
+6. **Snapshot** in Proxmox: VM → Snapshots → *Snapshot erstellen*, Name `01-windows-basis`
    (ohne RAM). Ab hier kann jederzeit neu begonnen werden.
 
 ## Teil 2 – Anbieter (Proxmox) anlegen

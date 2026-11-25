@@ -86,7 +86,8 @@ nutzt dafür bereits eine REST-Schnittstelle); dann eigene App auf Basis der Ups
 Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, dedicated“.
 
 - Unbeaufsichtigte Template-Erstellung: `autounattend.xml` (lokales Konto, RDP, VirtIO, Guest
-  Agent, LibreVDI-Agent „managed“), dokumentiert und skriptbar
+  Agent, LibreVDI-Agent „managed“), dokumentiert und skriptbar; VDI-Grundeinstellungen wie kein
+  Autologon und keine automatische Anmeldung nach Neustart (`DisableAutomaticRestartSignOn`)
 - Linked-Clone-Pool mit Windows-OS-Manager (Rename, optional AD-Join), Warm-Pool, Löschen bei
   Abmeldung, Disconnect-/Maximal-Timeouts
 - Dedicated-Variante: Klon bleibt beim Benutzer (OS-Manager „behalten“), Energie-Richtlinie
