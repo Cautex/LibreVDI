@@ -76,9 +76,7 @@ def upstream_contract() -> list[Result]:
         r, assigned_view._original_item, ["item", "props", "is_cache"], "AssignedUserService.userservice_item"
     )
     _check_params(r, assigned_view._original_table, ["self", "parent"], "AssignedUserService.get_table")
-    _check_params(
-        r, assigned_view._original_do_get_items, ["self", "parent", "for_cached"], "AssignedUserService.do_get_items"
-    )
+    _check_params(r, assigned_view._original_odata_filter, ["self", "qs"], "AssignedUserService.odata_filter")
     _check_params(r, pool_maintenance._original_is_in_maintenance, ["self"], "ServicePool.is_in_maintenance")
     _check_params(r, assigned_view._original_process_login, ["userservice", "username"], "actor Login.process_login")
 
@@ -174,7 +172,7 @@ def librevdi_active() -> list[Result]:
     )
     _check(r, AssignedUserService.userservice_item is assigned_view._userservice_item, "hook: 'Logged-in user' column")
     _check(r, AssignedUserService.get_table is assigned_view._get_table, "hook: assigned services column titles")
-    _check(r, AssignedUserService.do_get_items is assigned_view._do_get_items, "hook: hide removed machines")
+    _check(r, AssignedUserService.odata_filter is assigned_view._odata_filter, "hook: hide removed machines")
     _check(r, Login.process_login is assigned_view._process_login, "hook: latest login updates 'Logged-in user'")
     _check(r, ServicePool.is_in_maintenance is pool_maintenance._is_in_maintenance, "hook: maintenance per pool")
     uids = {key[0] for key, *_ in pre_save.receivers}

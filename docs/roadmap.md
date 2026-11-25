@@ -70,6 +70,7 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Transporte | sehr viele Einzeloptionen, „direct/tunneled“ und „Connectivity → Tunnels“ getrennt | Protokoll-Profile mit Voreinstellungen (z. B. „LAN – beste Qualität“, „WAN – sparsam“), Tunnel als Option „über Gateway verbinden“ direkt am Protokoll; Geräte-Filter mit verständlichen Namen (ChromeOS, Dell Wyse) |
 | Authentifikator | Felder wie „Access“, „Priority“, „Different user for each host“ nicht selbsterklärend | Erklärtexte direkt im Formular, Sonderoptionen einklappen |
 | Rollen | nur Admin / Staff Member / User, keine eigenen Rollen | Rollenmodell wie Horizon (z. B. Helpdesk: nur Sitzungen und Zuweisungen) prüfen |
+| Status-Spalten | „Status: Gültig“ ist der Zustand der Zuweisung, nicht der VM; ausgeschaltete VM nicht erkennbar | eigene Spalte **Energiezustand** (an/aus/angehalten) aus Proxmox, mit kurzem Cache; Sitzungsstatus verbunden/getrennt |
 | Maschinen-Übersicht | keine zentrale Liste aller Maschinen (persistent und Klone) mit Gesamtzahl; nur pro Anbieter unter „Usage“ | *Inventory → Machines*: alle Maschinen aller Pools mit Zahl (z. B. „55 in Betrieb“), Pool, zugewiesener/angemeldeter Benutzer, Status, Agent; Kennzahlen im Dashboard |
 | Pools / Zugewiesene Services | Maschinen liegen unter dem Pool versteckt | eigene Übersicht *Inventory → Machines* (alle VMs, Benutzer, Status, Agent) |
 

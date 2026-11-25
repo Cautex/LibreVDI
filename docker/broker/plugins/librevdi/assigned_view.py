@@ -18,6 +18,7 @@ import typing
 from django.utils.translation import gettext_lazy as _
 from uds.core.types.rest import TableField
 from uds.core.types.states import State
+from uds.models import UserService
 from uds.REST.methods.actor_v3 import Login
 from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
 
@@ -32,7 +33,7 @@ def logged_user(in_use: bool, props: dict[str, typing.Any]) -> str:
 
 
 _original_process_login = Login.process_login
-_original_do_get_items = AssignedUserService.do_get_items
+_original_odata_filter = AssignedUserService.odata_filter
 _original_item = AssignedUserService.userservice_item
 _original_table = AssignedUserService.get_table
 
@@ -58,12 +59,12 @@ def _process_login(userservice: typing.Any, username: str) -> typing.Any:
     return result
 
 
-def _do_get_items(self: AssignedUserService, parent: typing.Any, for_cached: bool) -> typing.Any:
-    """Removed machines disappear from the list at once (upstream keeps them for keepInfoTime)."""
-    items = _original_do_get_items(self, parent, for_cached)
-    if isinstance(items, list):
-        return [i for i in items if getattr(i, "state", None) != State.REMOVED]
-    return items
+def _odata_filter(self: AssignedUserService, qs: typing.Any) -> typing.Any:
+    """Removed machines disappear from the assigned list at once (upstream keeps them for keepInfoTime).
+    Filtered in the query, so the total count (X-Total-Count) matches the rows."""
+    if not getattr(self, "FOR_CACHED", False) and getattr(qs, "model", None) is UserService:
+        qs = qs.exclude(state=State.REMOVED)
+    return _original_odata_filter(self, qs)
 
 
 def _get_table(self: AssignedUserService, parent: typing.Any) -> typing.Any:
@@ -89,8 +90,8 @@ def register() -> None:
         AssignedUserService.userservice_item = staticmethod(_userservice_item)  # type: ignore[assignment]
     if Login.process_login is not _process_login:
         Login.process_login = staticmethod(_process_login)  # type: ignore[assignment]
-    if AssignedUserService.do_get_items is not _do_get_items:
-        AssignedUserService.do_get_items = _do_get_items  # type: ignore[method-assign]
+    if AssignedUserService.odata_filter is not _odata_filter:
+        AssignedUserService.odata_filter = _odata_filter  # type: ignore[method-assign]
     if AssignedUserService.get_table is not _get_table:
         AssignedUserService.get_table = _get_table  # type: ignore[method-assign]
 
