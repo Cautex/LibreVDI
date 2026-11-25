@@ -82,6 +82,8 @@ def test_full_package_roundtrip(tmp_path):
             str(icon),
             "--add-file",
             f"{tool}:/usr/sbin/librevdi-tool",
+            "--add-file",
+            f"{tool}:/usr/share/doc/librevdi-client/NOTICE.txt:0644",
         ]
     )
 
@@ -100,3 +102,4 @@ def test_full_package_roundtrip(tmp_path):
     assert "usr/share/applications/udslauncher.desktop" in md5 and "usr/share/udslauncher/launcher" in md5
     assert "usr/sbin/librevdi-tool" in md5
     assert os.stat(extracted / "usr/sbin/librevdi-tool").st_mode & 0o777 == 0o755
+    assert os.stat(extracted / "usr/share/doc/librevdi-client/NOTICE.txt").st_mode & 0o777 == 0o644

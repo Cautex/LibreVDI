@@ -13,6 +13,7 @@ on:
       - "upstream/uds-client"
       - "packaging/linux/**"
       - "packaging/windows/brand_upstream.py"
+      - "packaging/windows/collect_licenses.py"
       - "branding/**"
       - ".github/workflows/linux-builds.yml"
   workflow_dispatch:
@@ -56,6 +57,24 @@ jobs:
           python3 -m pip install --quiet --break-system-packages polib pillow
           crate=upstream/uds-${{ matrix.component == 'client' && 'client' || 'actor' }}
           python3 packaging/windows/brand_upstream.py ${{ matrix.component }} "$crate" branding
+      - name: Third-party license notices
+        run: |
+          mkdir -p notices
+          args=(--title "LibreVDI ${{ matrix.component == 'client' && 'Client' || 'Agent' }} (Linux)"
+                --target x86_64-unknown-linux-gnu --out notices/THIRD-PARTY-NOTICES.txt)
+          if [ "${{ matrix.component }}" = client ]; then
+            # FreeRDP is built from source in the builder image and shipped next to the launcher
+            freerdp=$(sed -n 's|.*git clone --branch \([0-9.]*\) .*FreeRDP.*|\1|p' \
+              upstream/uds-client/building/linux/builders/Debian13/Dockerfile)
+            curl -fsSL -o notices/FreeRDP-LICENSE.txt "https://raw.githubusercontent.com/FreeRDP/FreeRDP/$freerdp/LICENSE"
+            args+=(--cargo-dir upstream/uds-client --root launcher
+                   --fallback-text BSD-3-Clause=upstream/uds-client/LICENSE
+                   --extra "FreeRDP $freerdp|Apache-2.0|notices/FreeRDP-LICENSE.txt")
+          else
+            args+=(--cargo-dir upstream/uds-actor --fallback-text BSD-3-Clause=upstream/uds-actor/LICENSE)
+          fi
+          python3 packaging/windows/collect_licenses.py "${args[@]}"
+          echo "NOTICES=$PWD/notices/THIRD-PARTY-NOTICES.txt" >> "$GITHUB_ENV"
       - name: Prepare builder
         id: builder
         run: |

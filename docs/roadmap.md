@@ -99,8 +99,12 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 
 ## Phase 4 – Linux
 
-- **Linux-Client** (Desktop-App aus Phase 2f bzw. Launcher als Paket für Debian/Ubuntu/Fedora)
-- **Linux-Agent** und Linux-Desktops (persistente und geklonte Pools, xrdp)
+- **Linux-Client** als `.deb` für Debian 12, Debian 13, Ubuntu 24.04 – **gebaut in CI, im Portal
+  angeboten** (Lab-Test offen). Offen: Fedora/openSUSE (`.rpm`), AppImage, später Desktop-App aus 2f
+- **Linux-Agent** (managed + unmanaged, `.deb`, Admin-Downloads) mit `librevdi-agent-configure`
+  und Anleitung für persistente Ubuntu-Desktops mit xrdp ([anleitung-linux-desktop.md](anleitung-linux-desktop.md))
+  – **gebaut in CI** (Lab-Test offen). Offen: `.rpm` (Upstream-Builder vorhanden, Umpaketierung
+  für RPM fehlt), geklonte Linux-Pools (Phase 3)
 
 ## Phase 5 – GPU
 

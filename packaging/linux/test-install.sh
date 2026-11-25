@@ -35,6 +35,8 @@ for deb in "$dir"/*.deb; do
       fi
     done
     [ \$missing -eq 0 ]
+    test -s /usr/share/doc/\$pkg/THIRD-PARTY-NOTICES.txt
+    echo 'ok    third-party license notices'
     if [ \"\$pkg\" = librevdi-agent-unmanaged ]; then
       echo ci-test-token-0123456789 | librevdi-agent-configure --broker vdi.example.test --no-restart
       grep -q 'master_token = \"ci-test-token-0123456789\"' /etc/udsactor/udsactor.cfg

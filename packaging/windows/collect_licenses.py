@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collects third-party license notices for a Windows build (agent or client).
+"""Collects third-party license notices for a build of the agent or client (Windows or Linux).
 
 Writes one plain-text file ``THIRD-PARTY-NOTICES.txt`` that ships inside the installer and as a
 release asset, and a Markdown summary table (``--summary``).
@@ -79,9 +79,9 @@ def runtime_packages(metadata: dict, roots: list[str] | None = None) -> list[dic
     )
 
 
-def cargo_components(cargo_dir: str, roots: list[str] | None) -> list[Component]:
+def cargo_components(cargo_dir: str, roots: list[str] | None, target: str = TARGET) -> list[Component]:
     raw = subprocess.run(  # noqa: S603 - fixed argument list
-        ["cargo", "metadata", "--format-version", "1", "--locked", "--filter-platform", TARGET],  # noqa: S607
+        ["cargo", "metadata", "--format-version", "1", "--locked", "--filter-platform", target],  # noqa: S607
         cwd=cargo_dir,
         check=True,
         capture_output=True,
@@ -244,6 +244,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--title", required=True)
     ap.add_argument("--cargo-dir", required=True)
     ap.add_argument("--root", action="append", help="only these workspace packages (default: all members)")
+    ap.add_argument("--target", default=TARGET, help=f"Rust target of the build (default {TARGET})")
     ap.add_argument("--vcpkg-installed")
     ap.add_argument("--vcpkg-port", action="append", default=[])
     ap.add_argument("--extra", action="append", default=[])
@@ -269,7 +270,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args.vcpkg_installed:
             ap.error("--vcpkg-port needs --vcpkg-installed")
         components += vcpkg_components(args.vcpkg_installed, args.vcpkg_port)
-    components += cargo_components(args.cargo_dir, args.root)
+    components += cargo_components(args.cargo_dir, args.root, args.target)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, "w", encoding="utf-8", newline="\r\n") as f:

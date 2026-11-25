@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 
 ## [Unreleased]
 
+### Added (Linux, session policy)
+- **Linux client** packages `librevdi-client` for Debian 12, Debian 13 and Ubuntu 24.04, built in
+  CI from the upstream launcher (`.github/workflows/linux-builds.yml`), rebranded and
+  install-tested in clean containers; offered in the portal's Linux section.
+- **Linux agent** packages `librevdi-agent` / `librevdi-agent-unmanaged` (same distributions) as
+  admin downloads, with the command line tool `librevdi-agent-configure` (token via stdin) and a
+  guide for persistent Ubuntu desktops with xrdp (`docs/anleitung-linux-desktop.md`).
+- Persistent service setting **"Log off inactive sessions after (minutes)"**: the agent logs off
+  sessions without input for that time, including disconnected ones (warning two minutes before).
+
 ### Added (Phase 2b)
 - Service type **"Proxmox Persistent Desktops (LibreVDI)"** (broker plugin): fixed user ↔ VM
   assignment that survives logoff (upstream "Fixed Machines" releases it), ADR-0006.

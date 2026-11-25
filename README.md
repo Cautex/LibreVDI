@@ -41,6 +41,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Hinweise zu Upstream](docs/upstream-notes.md)
 - [Testanleitung Stand Phase 1](docs/test-phase1.md)
 - [Anleitung: persistente Desktops mit fester Benutzerzuweisung](docs/anleitung-persistente-desktops.md)
+- [Anleitung: persistenter Linux-Desktop (Ubuntu + xrdp) und Linux-Client](docs/anleitung-linux-desktop.md)
 - [Phase 2: persistenter Windows-Desktop (Details zur Windows-VM)](docs/test-phase2-windows.md)
 - [Tunnel (optional, pro Pool)](docs/tunnel.md)
 - [Signierte RDP-Dateien](docs/rdp-signing.md)

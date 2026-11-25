@@ -5,6 +5,7 @@
 #   packaging/linux/build-linux.sh client|agent Debian12|Debian13|Ubuntu2404 <version> <outdir>
 #
 # Expects the upstream sources to be branded already (packaging/windows/brand_upstream.py).
+# NOTICES=<file>: third-party license notices, shipped as /usr/share/doc/<package>/THIRD-PARTY-NOTICES.txt
 # Ubuntu 24.04 has no upstream builder: prepare-builder.sh generates it from the Debian 13 one.
 # A builder image built beforehand (e.g. with a layer cache in CI) is reused when
 # builders/<distro>/build.stamp is newer than its Dockerfile.
@@ -63,8 +64,11 @@ for deb in "${debs[@]}"; do
     *) echo "skipping unknown package $pkg"; continue ;;
   esac
   extra=()
+  if [[ -n "${NOTICES:-}" ]]; then  # third-party license notices (collect_licenses.py)
+    extra+=(--add-file "$NOTICES:/usr/share/doc/$name/THIRD-PARTY-NOTICES.txt:0644")
+  fi
   if [[ "$pkg" == "udsactor-unmanaged" ]]; then
-    extra=(--add-file "$repo_root/packaging/linux/librevdi-agent-configure:/usr/sbin/librevdi-agent-configure")
+    extra+=(--add-file "$repo_root/packaging/linux/librevdi-agent-configure:/usr/sbin/librevdi-agent-configure")
   fi
   python3 "$repo_root/packaging/linux/rebrand_deb.py" "$deb" "$outdir" \
     --name "$name" --version "$deb_version" --description "$desc" --suffix "$suffix" --icon "$icon" "${extra[@]}"
