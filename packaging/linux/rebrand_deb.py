@@ -8,6 +8,8 @@ The upstream build stays untouched (ADR-0008, level 4); only the finished packag
 * visible texts in desktop entries, autostart entries, systemd units, polkit policies and MIME
   definitions ("UDS Launcher" -> "LibreVDI Client", "UDS Actor" -> "LibreVDI Agent", ...)
 * desktop entries without an icon of their own get the LibreVDI icon
+* extra LibreVDI files (``--add-file src:/path/in/package``, mode 0755), e.g. the command line
+  configuration tool of the agent
 * ``DEBIAN/md5sums`` regenerated
 
 Technical names stay (binaries, paths such as /usr/share/udslauncher, systemd unit file names), so
@@ -110,7 +112,21 @@ def regenerate_md5sums(root: Path) -> None:
     (root / "DEBIAN" / "md5sums").write_text("".join(lines), encoding="utf-8")
 
 
-def rebrand_tree(root: Path, name: str, version: str, description: str, icon_src: Path | None) -> None:
+def add_files(root: Path, specs: list[str]) -> None:
+    for spec in specs:
+        src, sep, dest = spec.partition(":")
+        if not sep or not dest.startswith("/"):
+            raise SystemExit(f"--add-file expects src:/absolute/path, got {spec!r}")
+        target = root / dest.lstrip("/")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, target)
+        os.chmod(target, 0o755)  # noqa: S103 - executable shipped in the package
+
+
+def rebrand_tree(
+    root: Path, name: str, version: str, description: str, icon_src: Path | None, extra: list[str] | None = None
+) -> None:
+    add_files(root, extra or [])
     control = root / "DEBIAN" / "control"
     control.write_text(rebrand_control(control.read_text(encoding="utf-8"), name, version, description), "utf-8")
 
@@ -143,12 +159,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--description", required=True)
     ap.add_argument("--suffix", default="", help="file name suffix, e.g. debian13")
     ap.add_argument("--icon", type=Path)
+    ap.add_argument("--add-file", action="append", default=[], metavar="SRC:/DEST", help="add an executable")
     args = ap.parse_args(argv)
 
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp) / "pkg"
         subprocess.run(["dpkg-deb", "-R", str(args.deb), str(root)], check=True)  # noqa: S603, S607
-        rebrand_tree(root, args.name, args.version, args.description, args.icon)
+        rebrand_tree(root, args.name, args.version, args.description, args.icon, args.add_file)
         arch = dict(parse_control((root / "DEBIAN" / "control").read_text(encoding="utf-8"))).get("Architecture", "all")
         suffix = f"-{args.suffix}" if args.suffix else ""
         args.outdir.mkdir(parents=True, exist_ok=True)

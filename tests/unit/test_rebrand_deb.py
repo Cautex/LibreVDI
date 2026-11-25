@@ -63,6 +63,8 @@ def test_full_package_roundtrip(tmp_path):
     subprocess.run(["dpkg-deb", "--root-owner-group", "-b", str(root), str(upstream)], check=True, capture_output=True)
     icon = tmp_path / "logo.png"
     icon.write_bytes(b"png")
+    tool = tmp_path / "tool.sh"
+    tool.write_text("#!/bin/sh\n")
 
     rd.main(
         [
@@ -78,6 +80,8 @@ def test_full_package_roundtrip(tmp_path):
             "debian13",
             "--icon",
             str(icon),
+            "--add-file",
+            f"{tool}:/usr/sbin/librevdi-tool",
         ]
     )
 
@@ -94,3 +98,5 @@ def test_full_package_roundtrip(tmp_path):
     assert "Name=LibreVDI Client" in (extracted / "usr/share/applications/udslauncher.desktop").read_text()
     md5 = (extracted / "DEBIAN" / "md5sums").read_text()
     assert "usr/share/applications/udslauncher.desktop" in md5 and "usr/share/udslauncher/launcher" in md5
+    assert "usr/sbin/librevdi-tool" in md5
+    assert os.stat(extracted / "usr/sbin/librevdi-tool").st_mode & 0o777 == 0o755

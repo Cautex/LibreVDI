@@ -67,6 +67,8 @@ jobs:
       # builder images (the client one compiles FreeRDP) with a layer cache between runs
       - name: Builder image (cached)
         uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: "false"  # no extra .dockerbuild artifacts next to the packages
         with:
           context: ${{ steps.builder.outputs.dir }}
           tags: ${{ steps.builder.outputs.image }}

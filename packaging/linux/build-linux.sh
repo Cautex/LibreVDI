@@ -62,7 +62,11 @@ for deb in "${debs[@]}"; do
     udsactor-unmanaged) name=librevdi-agent-unmanaged;  desc="LibreVDI Agent (unmanaged) for persistent desktops" ;;
     *) echo "skipping unknown package $pkg"; continue ;;
   esac
+  extra=()
+  if [[ "$pkg" == "udsactor-unmanaged" ]]; then
+    extra=(--add-file "$repo_root/packaging/linux/librevdi-agent-configure:/usr/sbin/librevdi-agent-configure")
+  fi
   python3 "$repo_root/packaging/linux/rebrand_deb.py" "$deb" "$outdir" \
-    --name "$name" --version "$deb_version" --description "$desc" --suffix "$suffix" --icon "$icon"
+    --name "$name" --version "$deb_version" --description "$desc" --suffix "$suffix" --icon "$icon" "${extra[@]}"
 done
 ls -l "$outdir"

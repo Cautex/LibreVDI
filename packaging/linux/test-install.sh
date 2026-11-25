@@ -35,6 +35,12 @@ for deb in "$dir"/*.deb; do
       fi
     done
     [ \$missing -eq 0 ]
+    if [ \"\$pkg\" = librevdi-agent-unmanaged ]; then
+      echo ci-test-token-0123456789 | librevdi-agent-configure --broker vdi.example.test --no-restart
+      grep -q 'master_token = \"ci-test-token-0123456789\"' /etc/udsactor/udsactor.cfg
+      [ \"\$(stat -c %a /etc/udsactor/udsactor.cfg)\" = 600 ]
+      echo 'ok    librevdi-agent-configure'
+    fi
     grep -l 'LibreVDI' \$(dpkg -L \$pkg | grep -E '\\.desktop\$') >/dev/null 2>&1 && echo 'ok    desktop entries branded' || true
   "
 done
