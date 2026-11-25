@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: windows-${{ github.ref }}
+  group: windows-${{ github.workflow }}-${{ github.ref }}  # own group when called by release.yml
   # long first builds (FreeRDP, FFmpeg): queue new runs instead of cancelling them
   cancel-in-progress: false
 

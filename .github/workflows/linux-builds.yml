@@ -29,7 +29,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: linux-${{ github.ref }}
+  group: linux-${{ github.workflow }}-${{ github.ref }}  # own group when called by release.yml
   cancel-in-progress: false
 
 jobs:

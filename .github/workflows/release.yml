@@ -1,9 +1,10 @@
 name: Release
 
 # Builds a LibreVDI release from a version tag (v0.2.0, v0.2.0-rc.1):
-#   1. Windows installers (agent managed/unmanaged, client) with the release version
-#   2. broker image (installers bundled) and tunnel image, smoke-tested, pushed to GHCR
-#   3. a DRAFT GitHub release with installers, license notices and SHA256SUMS
+#   1. Windows installers (agent managed/unmanaged, client) and Linux packages (.deb for Debian 12,
+#      Debian 13, Ubuntu 24.04) with the release version
+#   2. broker image (installers and packages bundled) and tunnel image, smoke-tested, pushed to GHCR
+#   3. a DRAFT GitHub release with installers, packages, license notices and SHA256SUMS
 #
 # Nothing becomes public by itself: the release stays a draft until a maintainer publishes it,
 # and GHCR packages are private until their visibility is changed (see docs/release.md).
@@ -20,6 +21,7 @@ on:
       - ".github/workflows/release.yml"
       - "packaging/windows/collect_licenses.py"
       - "packaging/windows/set-version.ps1"
+      - "packaging/linux/build-linux.sh"
   workflow_dispatch:
     inputs:
       version:
@@ -73,8 +75,14 @@ jobs:
     with:
       version: ${{ needs.meta.outputs.version }}
 
+  linux:
+    needs: meta
+    uses: ./.github/workflows/linux-builds.yml
+    with:
+      version: ${{ needs.meta.outputs.version }}
+
   images:
-    needs: [meta, windows]
+    needs: [meta, windows, linux]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -91,11 +99,18 @@ jobs:
           pattern: librevdi-*-windows-x64
           path: windows
           merge-multiple: true
-      - name: Bundle installers into the broker image
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: librevdi-*-linux-*
+          path: linux
+          merge-multiple: true
+      - name: Bundle installers and packages into the broker image
         run: |
           cp windows/LibreVDI-*-Setup-"$VERSION".exe downloads/
+          cp linux/librevdi-*_"${VERSION//-/\~}"_amd64-*.deb downloads/
           ls -l downloads
           test "$(ls downloads/LibreVDI-*-Setup-"$VERSION".exe | wc -l)" -eq 3
+          test "$(ls downloads/librevdi-*.deb | wc -l)" -eq 9   # client, agent, agent-unmanaged x 3 distributions
       - uses: docker/setup-buildx-action@v3
       - name: Build broker image
         uses: docker/build-push-action@v6
@@ -121,7 +136,7 @@ jobs:
           cache-from: type=gha,scope=tunnel
       - name: Smoke test (release images, bundled installers, no ./downloads mount content)
         run: |
-          rm -f downloads/*.exe
+          rm -f downloads/*.exe downloads/*.deb
           cp .env.example .env
           sed -i "s/CHANGE_ME_DB_PASSWORD/$(openssl rand -hex 16)/; s/CHANGE_ME_ADMIN_PASSWORD/$(openssl rand -hex 12)/" .env
           {
@@ -155,7 +170,7 @@ jobs:
           done
 
   release:
-    needs: [meta, windows, images]
+    needs: [meta, windows, linux, images]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -169,11 +184,17 @@ jobs:
           pattern: librevdi-*-windows-x64
           path: windows
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: librevdi-*-linux-*
+          path: linux
+          merge-multiple: true
       - name: Assets and checksums
         run: |
           mkdir assets
           cp windows/LibreVDI-*-Setup-"$VERSION".exe windows/THIRD-PARTY-NOTICES-*.txt \
              windows/LibreVDI-Client-LGPL-sources-"$VERSION".zip assets/
+          cp linux/librevdi-*.deb assets/
           cp THIRD_PARTY.md assets/THIRD_PARTY.md
           (cd assets && sha256sum -- * > SHA256SUMS)
           cat assets/SHA256SUMS
@@ -196,8 +217,9 @@ jobs:
           LIBREVDI_TUNNEL_IMAGE=$REGISTRY/librevdi-tunnel:$VERSION
           \`\`\`
 
-          The broker image already contains the Windows installers of this release (portal
-          "Launcher" for users, agent downloads in the admin UI). See docs/installation.md.
+          The broker image already contains the Windows installers and Linux packages of this
+          release (portal "Launcher" for users, agent downloads in the admin UI). See
+          docs/installation.md; Linux desktops: docs/anleitung-linux-desktop.md.
 
           LibreVDI is based on OpenUDS (BSD-3-Clause, © Virtual Cable S.L.) and is not affiliated
           with Virtual Cable S.L. Third-party licenses: THIRD_PARTY.md and THIRD-PARTY-NOTICES-*.txt;
