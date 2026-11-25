@@ -3,7 +3,8 @@
 Upstream shows only the owner ("Owner") and "In Use". When someone else is logged in on the machine
 (a local administrator, an old session) the machine is "in use" although its owner is not working
 on it. LibreVDI adds the column "Logged-in user" (the Windows/Linux user name reported by the agent
-at the last login, shown while the machine is in use) and renames "Owner" to "Assigned user".
+at the last login, shown while the machine is in use), renames "Owner" to "Assigned user" and
+"Src Host/Ip" to "Last client (host/IP)" (the values stay after logoff on purpose).
 """
 
 from __future__ import annotations
@@ -43,9 +44,17 @@ def _userservice_item(
 
 def _get_table(self: AssignedUserService, parent: typing.Any) -> typing.Any:
     table = _original_table(self, parent)
+    titles = {
+        # where the last connection came from (kept after logoff, updated on every connection)
+        "source_host": _("Last client (host)"),
+        "source_ip": _("Last client (IP)"),
+        "owner": _("Assigned user"),
+    }
+    for field in table.fields:
+        if field.name in titles:
+            field.title = str(titles[field.name])
     for index, field in enumerate(table.fields):
         if field.name == "owner":
-            field.title = str(_("Assigned user"))
             table.fields.insert(index + 1, TableField(name="logged_user", title=str(_("Logged-in user"))))
             break
     return table

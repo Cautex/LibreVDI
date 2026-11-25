@@ -29,6 +29,7 @@ vorgeschlagene Priorität.
 | 2 | **Durchgehende Testanleitung** von leerem System bis Verbindung | ✅ [anleitung-persistente-desktops.md](anleitung-persistente-desktops.md) |
 | 3 | Agent-Update über ältere Versionen (Dienst-Umbenennung) im Lab bestätigen | offen |
 | 6 | Übersicht wie Horizon: Spalten **Zugewiesener Benutzer** und **Angemeldeter Benutzer**; klare Portal-Meldung „kein Desktop verfügbar“ statt „Servicelimit erreicht“ | ✅ umgesetzt |
+| 8 | **Sitzungen und VMs verwalten** wie bei Horizon: Abmelden, Trennen, Nachricht senden, Gast-Neustart (heute nur „Zurücksetzen“ = harter Reset und „Besitzer wechseln“) | offen |
 | 7 | **Wartung pro Pool** (statt nur ganzer Anbieter); Energie-Richtlinie am Pool statt am Dienst (kommt mit dem Pool-Assistenten aus 2e, wo Dienst und Pool eins werden) | offen |
 | 4 | Dienst ohne Maschinen anlegbar, Maschinen später ergänzen; Fehler heben Zuweisungen nie auf („Keep on error“ fest an) | ✅ umgesetzt |
 | 5 | **Silent-Installation des Agents** mit Parametern (z. B. `/S /BROKER=… /TOKEN=…`), damit nicht jede VM von Hand konfiguriert werden muss (Konfiguration liegt in `HKLM\SOFTWARE\UDSActor`, Base64-JSON) | offen |
@@ -61,6 +62,7 @@ Die Upstream-Verwaltung ist verschachtelt (Services → Anbieter → Services �
 | Authentifikatoren | „IP“ unklar; welcher ist „Active Directory“? | Vorlage **„Active Directory“** (LDAP mit AD-Voreinstellungen), „IP“ als „Network-based (kiosk)“ beschriften, Entwickler-Beispiel „Sample“ ausblenden |
 | Sprache | Deutsche Upstream-Übersetzung teils holprig („Instandhaltung“ für Maintenance) | **Englisch als Standardsprache**, Deutsch umschaltbar |
 | Anbieter → Dienst → Service-Pool | Zwischenschritt „Dienst“ ungewohnt (Horizon: vCenter → Pool) | Upstream-Grund: ein Dienst (VMs/Template) kann mehrere Pools speisen (andere Gruppen/Protokolle). Ziel: Assistent „Desktop-Pool anlegen“ erzeugt Dienst und Pool in einem Ablauf; Maschinen direkt am Pool hinzufügen |
+| Tabellen | Spaltenköpfe teils fett (= filter-/sortierbar), teils nicht; Spaltentitel überlappen bei kleinem Fenster | einheitliche Kopfzeilen mit Sortier-Symbol, Umbruch statt Überlappen, Filter auch für Benutzer-Spalten |
 | Formulare | Feld „Tags“ steht über „Name“; im Service-Pool „Short name“ über „Name“ | Pflichtfeld Name immer zuerst; „Short name“ als „Anzeigename für Benutzer“ benennen |
 | Service-Pool | Optionen wie Pool group, Calendars/Access, Show transports, Accounts über viele Reiter verteilt, „Visible“ versteckt im Reiter Display | Assistent mit den wichtigen Feldern, Rest unter „Erweitert“; „Benutzer dürfen VM neu starten“ wie bei Horizon klar benennen |
 | Transporte | sehr viele Einzeloptionen, „direct/tunneled“ und „Connectivity → Tunnels“ getrennt | Protokoll-Profile mit Voreinstellungen (z. B. „LAN – beste Qualität“, „WAN – sparsam“), Tunnel als Option „über Gateway verbinden“ direkt am Protokoll; Geräte-Filter mit verständlichen Namen (ChromeOS, Dell Wyse) |

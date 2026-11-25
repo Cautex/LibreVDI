@@ -47,7 +47,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   are started when their user connects (upstream behaviour).
 - `docs/horizon-vergleich.md`: terms and pool types mapped to Horizon.
 - Assigned services: "Owner" is now "Assigned user", new column "Logged-in user" (who is actually
-  logged in on the machine while it is in use).
+  logged in on the machine while it is in use), "Src Host/Ip" renamed to "Last client (host/IP)".
 - Portal message when a user gets no machine: "No desktop is available for you …" instead of
   "Maximum services limit reached" (German translation included).
 - Agent installer registers the session helper (`udsactor-client.exe`) to start at every logon.

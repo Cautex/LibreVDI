@@ -205,6 +205,8 @@ EXTRA_TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "Assigned user": "Zugewiesener Benutzer",
         "Logged-in user": "Angemeldeter Benutzer",
+        "Last client (host)": "Letzter Client (Host)",
+        "Last client (IP)": "Letzter Client (IP)",
     },
 }
 
