@@ -1,4 +1,4 @@
-"""Publishes LibreVDI Windows installers through the upstream download mechanisms.
+"""Publishes LibreVDI installers and packages through the upstream download mechanisms.
 
 Files are taken from ``LIBREVDI_DOWNLOADS_DIR`` (default ``/opt/librevdi/downloads``, mounted from
 ``./downloads`` on the Docker host) and, for every installer not found there, from the installers
@@ -9,6 +9,10 @@ OpenUDS broker serves:
              plugin points the portal's Windows entry to it, ``/uds/page/launcher-download``)
 * agent   -> ``uds/osmanagers/WindowsOsManager/files/UDSActor[Unmanaged]Setup-<version>.exe``
              (listed in the admin UI download section)
+* Linux client packages (``librevdi-client_<version>_amd64-<distro>.deb``) -> static ``clients/``
+  (file name kept; listed in the portal's Linux section by the LibreVDI plugin)
+* Linux agent packages (``librevdi-agent[-unmanaged]_<version>_amd64-<distro>.deb``) ->
+  ``uds/osmanagers/LinuxOsManager/files/`` (file name kept; registered by the LibreVDI plugin)
 
 Missing files are skipped. Runs once when the web container starts.
 """
@@ -32,6 +36,17 @@ TARGETS: tuple[tuple[str, str], ...] = (
         "uds/osmanagers/WindowsOsManager/files/UDSActorUnmanagedSetup-{version}.exe",
     ),
 )
+LINUX_DISTROS: tuple[str, ...] = ("debian12", "debian13", "ubuntu2404")
+LINUX_AGENT_DIR = "uds/osmanagers/LinuxOsManager/files"
+TARGETS += tuple(
+    (f"{package}_*_amd64-{distro}.deb", f"{target_dir}/{{source}}")
+    for package, target_dir in (
+        ("librevdi-client", "static/clients"),
+        ("librevdi-agent", LINUX_AGENT_DIR),
+        ("librevdi-agent-unmanaged", LINUX_AGENT_DIR),
+    )
+    for distro in LINUX_DISTROS
+)
 
 
 def upstream_version(version_file: str = VERSION_FILE) -> str:
@@ -42,12 +57,16 @@ def upstream_version(version_file: str = VERSION_FILE) -> str:
     return match.group(1)
 
 
-_VERSION_RE = re.compile(r"-Setup-(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?\.exe$")
+_VERSION_RES = (
+    re.compile(r"-Setup-(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?\.exe$"),
+    re.compile(r"_(\d+(?:\.\d+)*)(?:~([0-9A-Za-z.]+))?_[0-9a-z]+(?:-[0-9a-z]+)?\.deb$"),  # Debian: ~ = pre-release
+)
 
 
 def version_key(path: str) -> tuple:
     """Sort key: highest version wins (0.2.0 > 0.2.0-rc.1 > 0.1.0-dev.12 > 0.1.0-dev.8), then mtime."""
-    match = _VERSION_RE.search(os.path.basename(path))
+    name = os.path.basename(path)
+    match = next((m for r in _VERSION_RES if (m := r.search(name))), None)
     if not match:
         return ((), 0, (), os.path.getmtime(path))
     release = tuple(int(x) for x in match.group(1).split("."))

@@ -3,7 +3,9 @@
 * Agent downloads (admin "Downloads" page): renamed to LibreVDI file names and descriptions;
   entries whose file does not exist are hidden (upstream lists Linux/macOS packages that a
   LibreVDI installation does not ship).
-* Client downloads (portal "Launcher" page): only clients that are actually present are listed.
+* Linux agent packages (``librevdi-agent[-unmanaged]_*.deb``) are registered as admin downloads.
+* Client downloads (portal "Launcher" page): the Windows entry and the Linux entries point to the
+  LibreVDI client files; only clients that are actually present are listed.
 
 Installers are published to the upstream locations by ``librevdi_ext.downloads`` before the web
 server starts, so the file checks here see the final state.
@@ -14,8 +16,10 @@ import glob
 import json
 import os
 import re
+import typing
 
 from django.conf import settings
+from uds.core import types
 from uds.core.managers import downloads_manager
 from uds.web.util import udsclients_info
 
@@ -51,8 +55,50 @@ def _published_names() -> dict[str, str]:
         return {}
 
 
+_DISTRO_NAMES = {"debian12": "Debian 12", "debian13": "Debian 13", "ubuntu2404": "Ubuntu 24.04"}
+_DEB_RE = re.compile(r"^(librevdi-[a-z-]+)_[^_]+_amd64-([0-9a-z]+)\.deb$")
+_AGENT_DESCRIPTIONS = {
+    "librevdi-agent-unmanaged": "LibreVDI Agent (unmanaged) for persistent Linux desktops - {distro}",
+    "librevdi-agent": "LibreVDI Agent (managed) for cloned Linux desktops - {distro}",
+}
+
+
+def _linux_packages(directory: str, package: str) -> list[tuple[str, str]]:
+    """(file name, distribution name) of the packages of ``package`` in ``directory``."""
+    found = []
+    for path in sorted(glob.glob(os.path.join(directory, f"{package}_*.deb"))):
+        match = _DEB_RE.match(os.path.basename(path))
+        if match and match.group(1) == package:
+            found.append((os.path.basename(path), _DISTRO_NAMES.get(match.group(2), match.group(2))))
+    return found
+
+
+def _register_linux_agents(manager: typing.Any, app: str) -> None:
+    directory = os.path.join(app, "uds", "osmanagers", "LinuxOsManager", "files")
+    for package, description in _AGENT_DESCRIPTIONS.items():
+        for name, distro in _linux_packages(directory, package):
+            manager.register(
+                name,
+                description.format(distro=distro),
+                os.path.join(directory, name),
+                mimetype="application/x-debian-package",
+            )
+
+
+def _linux_clients(base_url: str) -> list[typing.Any]:
+    clients_dir = os.path.join(settings.STATIC_ROOT, "clients")
+    return [
+        types.plugins.UDSClientPlugin(
+            url=f"{base_url}/{name}", description=f"LibreVDI Client ({distro})", name="Linux", legacy=False
+        )
+        for name, distro in _linux_packages(clients_dir, "librevdi-client")
+    ]
+
+
 def apply() -> None:
     manager = downloads_manager()
+    app = os.path.dirname(os.path.abspath(settings.STATIC_ROOT))  # /app
+    _register_linux_agents(manager, app)
     table = getattr(manager, "_downloadables", None)
     names = _published_names()
     if isinstance(table, dict):
@@ -73,6 +119,11 @@ def apply() -> None:
                 url=plugin.url.rsplit("/", 1)[0] + "/" + os.path.basename(clients[-1]),
                 description="LibreVDI Client (Windows)",
             )
+    if udsclients_info.PLUGINS:
+        base_url = udsclients_info.PLUGINS[0].url.rsplit("/", 1)[0]
+        linux = _linux_clients(base_url)
+        if linux:  # LibreVDI packages replace the upstream Linux entries
+            udsclients_info.PLUGINS[:] = [p for p in udsclients_info.PLUGINS if p.name != "Linux"] + linux
     udsclients_info.PLUGINS[:] = [p for p in udsclients_info.PLUGINS if os.path.isfile(_static_file(p.url))]
 
 

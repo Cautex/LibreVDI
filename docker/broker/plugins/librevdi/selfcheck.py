@@ -44,7 +44,7 @@ def _check_params(results: list[Result], func: typing.Any, expected: list[str], 
 def upstream_contract() -> list[Result]:
     # pylint: disable=import-outside-toplevel
     from django.db.models.signals import pre_save
-    from uds.core import jobs
+    from uds.core import jobs, types
     from uds.core.exceptions.services import MaxServicesReachedError
     from uds.core.managers import downloads_manager
     from uds.core.services.generics.fixed.service import FixedService
@@ -134,6 +134,17 @@ def upstream_contract() -> list[Result]:
     _check(r, issubclass(MaxServicesReachedError, Exception), "MaxServicesReachedError")
     _check(r, isinstance(getattr(downloads_manager(), "_downloadables", None), dict), "DownloadsManager._downloadables")
     _check(r, isinstance(udsclients_info.PLUGINS, list), "udsclients_info.PLUGINS")
+    _check(
+        r,
+        [f.name for f in dataclasses.fields(types.plugins.UDSClientPlugin)] == ["url", "description", "name", "legacy"],
+        "types.plugins.UDSClientPlugin(url, description, name, legacy)",
+    )
+    _check_params(
+        r,
+        type(downloads_manager()).register,
+        ["self", "name", "description", "path", "mimetype", "legacy"],
+        "DownloadsManager.register",
+    )
     _check(r, hasattr(jobs, "Job") and hasattr(jobs, "factory"), "uds.core.jobs.Job / factory")
     _check(r, hasattr(pre_save, "receivers"), "django pre_save signal")
     for name in (
