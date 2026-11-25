@@ -80,6 +80,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 - Maintenance per pool: tag `maintenance` (or `wartung`) on a pool puts only this pool into
   maintenance (portal, admin list, no new connections, power policy paused); upstream only had
   provider-wide maintenance.
+- Agent installer writes `install.log` (configuration and service setup output, no token), exit
+  codes 0/2/3/4, and refuses to run twice at the same time.
 - Silent installation of the unmanaged agent: `/S /BROKER=<host> /TOKEN=<token>` (optional
   `/VERIFYSSL=0`, `/LOGLEVEL=`) writes the configuration in the agent's own format (registry,
   Base64 JSON, protected key) and starts the service; also `configure-agent.ps1` on its own.

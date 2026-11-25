@@ -71,11 +71,33 @@ Function .onInit
     Abort
   ${EndIf}
   SetRegView 64
+  ; only one installer at a time (parallel runs would fight over the service and files)
+  System::Call 'kernel32::CreateMutex(p 0, i 0, t "LibreVDIAgentSetup") p .r1 ?e'
+  Pop $R0
+  ${If} $R0 == 183
+    MessageBox MB_ICONSTOP "Der LibreVDI-Agent-Installer läuft bereits.$\r$\nThe LibreVDI Agent installer is already running." /SD IDOK
+    SetErrorLevel 4
+    Abort
+  ${EndIf}
 FunctionEnd
 
 !macro MoveAside NAME
   IfFileExists "$INSTDIR\${NAME}" 0 +2
     Rename "$INSTDIR\${NAME}" "$INSTDIR\${NAME}.old"
+!macroend
+
+; Runs a command, shows its output in the details and appends it to $INSTDIR\install.log.
+; Result: exit code in $0 (uses $8/$9 internally; $1 is the retry counter of the service loop).  (Token values are never part of the logged text, only the command name.)
+!macro LoggedExec LABEL CMD
+  nsExec::ExecToStack '${CMD}'
+  Pop $0
+  Pop $8
+  DetailPrint "${LABEL}: exit $0"
+  DetailPrint "$8"
+  FileOpen $9 "$INSTDIR\install.log" a
+  FileSeek $9 0 END
+  FileWrite $9 "== ${LABEL} (exit $0)$\r$\n$8$\r$\n"
+  FileClose $9
 !macroend
 
 Section "Agent"
@@ -124,8 +146,7 @@ Section "Agent"
       StrCpy $R4 "warn"
     ClearErrors
     DetailPrint "Konfiguriere LibreVDI Agent für $R1 ..."
-    nsExec::ExecToLog '${POWERSHELL} -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\configure-agent.ps1" -Broker "$R1" -Token "$R2" -VerifySsl "$R3" -LogLevel "$R4"'
-    Pop $0
+    !insertmacro LoggedExec "configure-agent ($R1)" '${POWERSHELL} -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\configure-agent.ps1" -Broker "$R1" -Token "$R2" -VerifySsl "$R3" -LogLevel "$R4"' 
     StrCmp $0 "0" config_done
       MessageBox MB_ICONEXCLAMATION "Die Agent-Konfiguration ist fehlgeschlagen (Code $0), siehe 'Details anzeigen'.$\r$\nAgent configuration failed (code $0)." /SD IDOK
       SetErrorLevel 2
@@ -139,13 +160,11 @@ Section "Agent"
   ; Windows service "LibreVDIAgent". "--uninstall" first removes an existing LibreVDIAgent and the
   ; older "UDSActorService" (same display name). Windows finishes deleting a service only when no
   ; handle is open anymore (e.g. the Services console), so creating the new one is retried.
-  nsExec::ExecToLog '"$INSTDIR\udsactor-service.exe" --uninstall'
-  Pop $0
+  !insertmacro LoggedExec "service --uninstall" '"$INSTDIR\udsactor-service.exe" --uninstall' 
   StrCpy $1 0
   install_service:
     IntOp $1 $1 + 1
-    nsExec::ExecToLog '"$INSTDIR\udsactor-service.exe" --install'
-    Pop $0
+    !insertmacro LoggedExec "service --install (try $1)" '"$INSTDIR\udsactor-service.exe" --install' 
     StrCmp $0 "0" service_installed
     IntCmp $1 10 service_failed
     DetailPrint "Dienst noch nicht bereit, neuer Versuch ($1/10) ..."
@@ -156,8 +175,7 @@ Section "Agent"
     MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0). Bitte die Dienste-Konsole schließen oder Windows neu starten und den Installer erneut ausführen. Details: 'Details anzeigen'.$\r$\n$\r$\nThe LibreVDI Agent service could not be installed (code $0). Close the Services console or restart Windows and run the installer again." /SD IDOK
     Goto service_done
   service_installed:
-    nsExec::ExecToLog 'sc.exe start LibreVDIAgent'
-    Pop $0
+    !insertmacro LoggedExec "sc start LibreVDIAgent" 'sc.exe start LibreVDIAgent' 
   service_done:
 
   ; Broker -> agent communication (default listener port 43910)

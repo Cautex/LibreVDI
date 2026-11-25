@@ -169,8 +169,18 @@ den Agent und startet den Dienst, kein Neustart, kein Konfigurationsprogramm nö
 LibreVDI-Agent-unmanaged-Setup-<version>.exe /S /BROKER=<domain> /TOKEN=<Service-Token aus Teil 4>
 ```
 
-Optional `/VERIFYSSL=0` (selbstsigniertes Zertifikat ohne importierte CA) und
-`/LOGLEVEL=debug`. Für viele VMs per Softwareverteilung/GPO nutzbar. Danach weiter bei Schritt 3
+In **PowerShell** kehrt der Aufruf sofort zurück, der Installer läuft im Hintergrund weiter –
+mit Warten und Ergebnis:
+
+```powershell
+$p = Start-Process -Wait -PassThru .\LibreVDI-Agent-unmanaged-Setup-<version>.exe `
+     -ArgumentList '/S', '/BROKER=<domain>', '/TOKEN=<Service-Token>'
+$p.ExitCode   # 0 = ok, 2 = Konfiguration fehlgeschlagen, 3 = Dienst nicht eingerichtet, 4 = läuft schon
+```
+
+Protokoll: `C:\Program Files\LibreVDI\Agent\install.log` (Konfiguration und Dienst-Einrichtung,
+ohne Token). Installer nur **einmal** gleichzeitig starten. Optional `/VERIFYSSL=0`
+(selbstsigniertes Zertifikat ohne importierte CA) und `/LOGLEVEL=debug`. Für viele VMs per Softwareverteilung/GPO nutzbar. Danach weiter bei Schritt 3
 (Prüfen). Hinweis: Der Token steht in der Befehlszeile – keine Protokolle mit Befehlszeilen teilen.
 
 **Oder interaktiv:**

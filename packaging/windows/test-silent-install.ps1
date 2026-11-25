@@ -18,6 +18,12 @@ Check ($p.ExitCode -eq 0) "installer exit code 0 (got $($p.ExitCode))"
 
 $installDir = Join-Path $env:ProgramFiles "LibreVDI\Agent"
 Check (Test-Path (Join-Path $installDir "udsactor-service.exe")) "files installed in $installDir"
+$log = Join-Path $installDir "install.log"
+Check (Test-Path $log) "install.log written"
+if (Test-Path $log) {
+    Get-Content $log | ForEach-Object { Write-Host "      log: $_" }
+    Check (-not (Select-String -Path $log -SimpleMatch "ci-test-token" -Quiet)) "install.log contains no token"
+}
 
 # Configuration as the agent stores it: Base64(JSON) in the default value, REG_BINARY
 $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey(
