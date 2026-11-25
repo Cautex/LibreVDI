@@ -21,7 +21,7 @@ on:
       - ".github/workflows/release.yml"
       - "packaging/windows/collect_licenses.py"
       - "packaging/windows/set-version.ps1"
-      - "packaging/linux/build-linux.sh"
+      - "packaging/linux/**"
   workflow_dispatch:
     inputs:
       version:

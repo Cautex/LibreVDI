@@ -35,7 +35,8 @@ for deb in "$dir"/*.deb; do
       fi
     done
     [ \$missing -eq 0 ]
-    test -s /usr/share/doc/\$pkg/THIRD-PARTY-NOTICES.txt
+    # checked in the package: minimised images (ubuntu:24.04) do not install /usr/share/doc
+    dpkg-deb -c /pkgs/$name | grep -q \"./usr/share/doc/\$pkg/THIRD-PARTY-NOTICES.txt\"
     echo 'ok    third-party license notices'
     if [ \"\$pkg\" = librevdi-agent-unmanaged ]; then
       echo ci-test-token-0123456789 | librevdi-agent-configure --broker vdi.example.test --no-restart
