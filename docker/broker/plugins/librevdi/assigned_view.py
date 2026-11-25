@@ -3,7 +3,8 @@
 Upstream shows only the owner ("Owner") and "In Use". When someone else is logged in on the machine
 (a local administrator, an old session) the machine is "in use" although its owner is not working
 on it. LibreVDI adds the column "Logged-in user" (the Windows/Linux user name reported by the agent
-at the last login, shown while the machine is in use), renames "Owner" to "Assigned user" and
+at the latest login – upstream kept the first one while the machine stayed in use – shown while the
+machine is in use), renames "Owner" to "Assigned user" and
 "Src Host/Ip" to "Last client (host/IP)" (the values stay after logoff on purpose).
 Removed machines are hidden from the list immediately (upstream shows them greyed out until the
 cleanup job deletes them after ``keepInfoTime``, default 4 h).
@@ -17,6 +18,7 @@ import typing
 from django.utils.translation import gettext_lazy as _
 from uds.core.types.rest import TableField
 from uds.core.types.states import State
+from uds.REST.methods.actor_v3 import Login
 from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
 
 
@@ -29,6 +31,7 @@ def logged_user(in_use: bool, props: dict[str, typing.Any]) -> str:
     return str(props.get("last_username") or "") if in_use else ""
 
 
+_original_process_login = Login.process_login
 _original_do_get_items = AssignedUserService.do_get_items
 _original_item = AssignedUserService.userservice_item
 _original_table = AssignedUserService.get_table
@@ -44,6 +47,15 @@ def _userservice_item(
     return LibreVDIUserServiceItem(
         **values, logged_user=logged_user(item.in_use, props if props is not None else dict(item.properties))
     )
+
+
+def _process_login(userservice: typing.Any, username: str) -> typing.Any:
+    """Upstream stores the user name only when the machine goes from unused to in use, so a second
+    session (e.g. a local admin left logged in) hides the actual user. Keep the latest login."""
+    result = _original_process_login(userservice, username)
+    if username:
+        userservice.properties["last_username"] = username
+    return result
 
 
 def _do_get_items(self: AssignedUserService, parent: typing.Any, for_cached: bool) -> typing.Any:
@@ -75,6 +87,8 @@ def _get_table(self: AssignedUserService, parent: typing.Any) -> typing.Any:
 def register() -> None:
     if AssignedUserService.userservice_item is not _userservice_item:  # type: ignore[comparison-overlap]
         AssignedUserService.userservice_item = staticmethod(_userservice_item)  # type: ignore[assignment]
+    if Login.process_login is not _process_login:
+        Login.process_login = staticmethod(_process_login)  # type: ignore[assignment]
     if AssignedUserService.do_get_items is not _do_get_items:
         AssignedUserService.do_get_items = _do_get_items  # type: ignore[method-assign]
     if AssignedUserService.get_table is not _get_table:
