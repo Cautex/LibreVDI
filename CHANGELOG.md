@@ -71,6 +71,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
   the power policy pauses while the provider is in maintenance mode.
 
 ### Added (Phase 2d)
+- Silent installation of the unmanaged agent: `/S /BROKER=<host> /TOKEN=<token>` (optional
+  `/VERIFYSSL=0`, `/LOGLEVEL=`) writes the configuration in the agent's own format (registry,
+  Base64 JSON, protected key) and starts the service; also `configure-agent.ps1` on its own.
+  Windows CI installs/uninstalls silently and checks the result. All installer dialogs have silent
+  defaults.
 - Persistent desktops: switch *Automatic assignment* (off = users only get the machine an
   administrator assigned via "Assign service", like dedicated pools without automatic assignment).
 - Persistent service: machines optional (create the service first, add machines later); access

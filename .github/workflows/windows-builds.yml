@@ -91,6 +91,9 @@ jobs:
           Copy-Item notices\THIRD-PARTY-NOTICES.txt out\THIRD-PARTY-NOTICES-Agent.txt
           Copy-Item notices\third-party-agent.md out\
           Get-ChildItem out | Format-Table Name, Length
+      - name: Test silent installation (install, configuration, uninstall)
+        shell: pwsh
+        run: packaging\windows\test-silent-install.ps1 out
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-agent-windows-x64

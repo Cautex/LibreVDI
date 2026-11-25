@@ -32,7 +32,7 @@ vorgeschlagene Priorität.
 | 8 | **Sitzungen und VMs verwalten** wie bei Horizon: Abmelden, Trennen, Nachricht senden, Gast-Neustart (heute nur „Zurücksetzen“ = harter Reset und „Besitzer wechseln“) | offen |
 | 7 | **Wartung pro Pool** (statt nur ganzer Anbieter); Energie-Richtlinie am Pool statt am Dienst (kommt mit dem Pool-Assistenten aus 2e, wo Dienst und Pool eins werden) | offen |
 | 4 | Dienst ohne Maschinen anlegbar, Maschinen später ergänzen; Fehler heben Zuweisungen nie auf („Keep on error“ fest an) | ✅ umgesetzt |
-| 5 | **Silent-Installation des Agents** mit Parametern (z. B. `/S /BROKER=… /TOKEN=…`), damit nicht jede VM von Hand konfiguriert werden muss (Konfiguration liegt in `HKLM\SOFTWARE\UDSActor`, Base64-JSON) | offen |
+| 5 | **Silent-Installation des Agents** (`/S /BROKER=… /TOKEN=… [/VERIFYSSL=0] [/LOGLEVEL=…]`): schreibt die Konfiguration im Format des Agents, startet den Dienst; End-to-End-Test auf dem Windows-Runner | ✅ umgesetzt (Lab-Test offen) |
 
 ## Phase 2e – Bedienung wie bei Horizon: Oberfläche, Navigation, Begriffe
 

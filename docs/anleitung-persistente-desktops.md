@@ -162,6 +162,19 @@ einen anderen Dienst, muss der Agent den neuen Token bekommen.
 
 ## Teil 7 – Agent in der VM
 
+**Schnellweg (Silent-Installation):** In einer Admin-Eingabeaufforderung in der VM – konfiguriert
+den Agent und startet den Dienst, kein Neustart, kein Konfigurationsprogramm nötig:
+
+```
+LibreVDI-Agent-unmanaged-Setup-<version>.exe /S /BROKER=<domain> /TOKEN=<Service-Token aus Teil 4>
+```
+
+Optional `/VERIFYSSL=0` (selbstsigniertes Zertifikat ohne importierte CA) und
+`/LOGLEVEL=debug`. Für viele VMs per Softwareverteilung/GPO nutzbar. Danach weiter bei Schritt 3
+(Prüfen). Hinweis: Der Token steht in der Befehlszeile – keine Protokolle mit Befehlszeilen teilen.
+
+**Oder interaktiv:**
+
 1. In der VM: Edge → `https://<domain>/` → als `root` anmelden → Benutzermenü → **Downloads** →
    **LibreVDI Agent for Unmanaged windows machines**
    (`LibreVDI-Agent-unmanaged-Setup-<version>.exe`) → als Administrator installieren.

@@ -53,7 +53,7 @@ VIAddVersionKey "LegalCopyright" "LibreVDI contributors; based on OpenUDS (BSD-3
 
 Function .onInit
   ${IfNot} ${RunningX64}
-    MessageBox MB_ICONSTOP "LibreVDI Client requires 64-bit Windows."
+    MessageBox MB_ICONSTOP "LibreVDI Client requires 64-bit Windows." /SD IDOK
     Abort
   ${EndIf}
   SetRegView 64
@@ -65,7 +65,7 @@ Section "Client"
   Pop $0
   Pop $1
   ${If} $0 == 0
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Der LibreVDI Client läuft noch und wird für das Update beendet. Offene Verbindungen werden getrennt.$\r$\n$\r$\nLibreVDI Client is still running and will be closed for the update. Open connections will be disconnected." IDOK close_client
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Der LibreVDI Client läuft noch und wird für das Update beendet. Offene Verbindungen werden getrennt.$\r$\n$\r$\nLibreVDI Client is still running and will be closed for the update. Open connections will be disconnected." /SD IDOK IDOK close_client
     Abort
     close_client:
     nsExec::Exec 'taskkill.exe /F /IM launcher.exe'

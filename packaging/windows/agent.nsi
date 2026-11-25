@@ -10,16 +10,24 @@
 ;              registers with a service token
 ;   managed    floating pools / linked clones with an OS manager:
 ;              registers with broker administrator credentials
+;
+; Silent installation (unmanaged): configures the agent and starts the service, no reboot needed
+;   LibreVDI-Agent-unmanaged-Setup-<ver>.exe /S /BROKER=vdi.example.com /TOKEN=<service token>
+;   optional: /VERIFYSSL=0 (self-signed certificate)  /LOGLEVEL=debug|info|warn|error
 
 Unicode true
 !include "MUI2.nsh"
 !include "x64.nsh"
+!include "FileFunc.nsh"
 
 !ifndef VERSION
   !define VERSION "0.0.0-dev"
 !endif
 !ifndef VARIANT
   !define VARIANT "unmanaged"
+!endif
+!ifndef POWERSHELL
+  !define POWERSHELL "powershell.exe"  ; overridable for tests
 !endif
 !ifndef SRCDIR
   !define SRCDIR "..\..\upstream\uds-actor\target\release"
@@ -59,7 +67,7 @@ VIAddVersionKey "LegalCopyright" "LibreVDI contributors; based on OpenUDS (BSD-3
 
 Function .onInit
   ${IfNot} ${RunningX64}
-    MessageBox MB_ICONSTOP "LibreVDI Agent requires 64-bit Windows."
+    MessageBox MB_ICONSTOP "LibreVDI Agent requires 64-bit Windows." /SD IDOK
     Abort
   ${EndIf}
   SetRegView 64
@@ -96,6 +104,33 @@ Section "Agent"
     File "${SRCDIR}\udsactor-config.exe"
   !endif
   File /oname=LICENSE-OpenUDS.txt "..\..\upstream\uds-actor\LICENSE"
+  !if "${VARIANT}" == "unmanaged"
+    File "configure-agent.ps1"
+    ; Optional configuration from the command line (/BROKER= /TOKEN= [/VERIFYSSL=] [/LOGLEVEL=])
+    ${GetParameters} $R0
+    ClearErrors
+    ${GetOptions} $R0 "/BROKER=" $R1
+    IfErrors config_done
+    ${GetOptions} $R0 "/TOKEN=" $R2
+    IfErrors 0 +3
+      DetailPrint "/BROKER ohne /TOKEN angegeben - Agent bitte manuell konfigurieren"
+      Goto config_done
+    ${GetOptions} $R0 "/VERIFYSSL=" $R3
+    IfErrors 0 +2
+      StrCpy $R3 "1"
+    ClearErrors
+    ${GetOptions} $R0 "/LOGLEVEL=" $R4
+    IfErrors 0 +2
+      StrCpy $R4 "warn"
+    ClearErrors
+    DetailPrint "Konfiguriere LibreVDI Agent für $R1 ..."
+    nsExec::ExecToLog '${POWERSHELL} -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\configure-agent.ps1" -Broker "$R1" -Token "$R2" -VerifySsl "$R3" -LogLevel "$R4"'
+    Pop $0
+    StrCmp $0 "0" config_done
+      MessageBox MB_ICONEXCLAMATION "Die Agent-Konfiguration ist fehlgeschlagen (Code $0), siehe 'Details anzeigen'.$\r$\nAgent configuration failed (code $0)." /SD IDOK
+      SetErrorLevel 2
+    config_done:
+  !endif
   !ifdef NOTICES
     ; licenses of bundled third-party components (packaging/windows/collect_licenses.py)
     File /oname=THIRD-PARTY-NOTICES.txt "${NOTICES}"
@@ -117,7 +152,8 @@ Section "Agent"
     Sleep 3000
     Goto install_service
   service_failed:
-    MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0). Bitte die Dienste-Konsole schließen oder Windows neu starten und den Installer erneut ausführen. Details: 'Details anzeigen'.$\r$\n$\r$\nThe LibreVDI Agent service could not be installed (code $0). Close the Services console or restart Windows and run the installer again."
+    SetErrorLevel 3
+    MessageBox MB_ICONEXCLAMATION "Der LibreVDI-Agent-Dienst konnte nicht eingerichtet werden (Code $0). Bitte die Dienste-Konsole schließen oder Windows neu starten und den Installer erneut ausführen. Details: 'Details anzeigen'.$\r$\n$\r$\nThe LibreVDI Agent service could not be installed (code $0). Close the Services console or restart Windows and run the installer again." /SD IDOK
     Goto service_done
   service_installed:
     nsExec::ExecToLog 'sc.exe start LibreVDIAgent'
