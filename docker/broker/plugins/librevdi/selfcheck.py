@@ -18,6 +18,7 @@ import base64
 import dataclasses
 import inspect
 import os
+import re
 import typing
 
 Result = tuple[bool, str]
@@ -51,6 +52,7 @@ def upstream_contract() -> list[Result]:
     from uds.core.types.rest import TableField
     from uds.core.util.config import GlobalConfig
     from uds.models import Provider, Service, ServicePool, ServicePoolGroup, Tag, UserService
+    from uds.REST.methods.actor_v3 import Login
     from uds.REST.methods.user_services import UserServiceItem
     from uds.services.Proxmox.proxmox.client import ProxmoxClient
     from uds.services.Proxmox.service_fixed import ProxmoxServiceFixed
@@ -79,6 +81,16 @@ def upstream_contract() -> list[Result]:
     _check_params(r, assigned_view._original_odata_filter, ["self", "qs"], "AssignedUserService.odata_filter")
     _check_params(r, pool_maintenance._original_is_in_maintenance, ["self"], "ServicePool.is_in_maintenance")
     _check_params(r, assigned_view._original_process_login, ["userservice", "username"], "actor Login.process_login")
+    # the idle logoff policy stands in for the OS manager: only these two methods may be used on it
+    try:
+        used = set(re.findall(r"osmanager\.(\w+)\(", inspect.getsource(Login.action)))
+    except (OSError, TypeError):
+        used = set()
+    _check(
+        r,
+        used == {"max_idle", "ignore_deadline"},
+        "actor Login.action uses osmanager.max_idle/ignore_deadline only" + ("" if used else " – source not readable"),
+    )
 
     # base class of the persistent service type
     for name in (
@@ -147,6 +159,7 @@ def librevdi_active() -> list[Result]:
     from uds.core.consts import images
     from uds.core.managers.userservice import UserServiceManager
     from uds.core.types import errors
+    from uds.core.ui import gui
     from uds.models import ServicePool
     from uds.REST.methods.actor_v3 import Login
     from uds.REST.methods.user_services import AssignedUserService
@@ -175,6 +188,11 @@ def librevdi_active() -> list[Result]:
     _check(r, AssignedUserService.odata_filter is assigned_view._odata_filter, "hook: hide removed machines")
     _check(r, Login.process_login is assigned_view._process_login, "hook: latest login updates 'Logged-in user'")
     _check(r, ServicePool.is_in_maintenance is pool_maintenance._is_in_maintenance, "hook: maintenance per pool")
+    _check(
+        r,
+        isinstance(getattr(proxmox_persistent.ProxmoxServicePersistent, "idle_logoff", None), gui.NumericField),
+        "persistent service setting 'Log off inactive sessions'",
+    )
     uids = {key[0] for key, *_ in pre_save.receivers}
     for uid in ("librevdi-persistent-unused", "librevdi-default-pool-group"):
         _check(r, uid in uids, f"signal: {uid}")

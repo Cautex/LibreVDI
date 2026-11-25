@@ -125,6 +125,7 @@ Das ist die **Anmeldung am LibreVDI-Portal**. Die Anmeldung *in Windows* ist dav
 | Erweitert | Use snapshots | **aus** – an würde die VM nach jeder Nutzung auf einen Snapshot zurücksetzen (nicht persistent) |
 | Erweitert | **Automatic assignment** | **aus** (nur vom Admin zugewiesene VMs) |
 | Erweitert | After logoff | `Do nothing` (für den ersten Test) |
+| Erweitert | Log off inactive sessions after (minutes) | `0` = aus (für den ersten Test); siehe Teil 10, Test 8 |
 
 „Keep on error“ gibt es bei diesem Dienst-Typ nicht: Fehler an einer VM heben die Zuweisung nie
 auf (beim Upstream-Typ „Fixed Machines“ würde die VM sonst freigegeben).
@@ -249,6 +250,7 @@ und setzt den Status auf **Gültig**.
 | 6 | Bei ausgeschalteter VM als `max` verbinden | VM startet von selbst, nach 1–2 min verbunden |
 | 7b | Wartung **eines Pools**: Pool bearbeiten → Feld **Tags** → `maintenance` (oder `wartung`) eintragen, speichern | nur dieser Pool „in Wartung“ (Portal und Pool-Liste), andere Pools normal; Tag entfernen = Wartung aus |
 | 7 | Wartung: **Services → Anbieter → Proxmox Lab → Instandhaltung** an | Pool im Portal „in Wartung“, keine neuen Verbindungen, bestehende Sitzungen bleiben; Energie-Richtlinie pausiert; danach wieder aus |
+| 8 | Leerlauf-Abmeldung: im Dienst *Log off inactive sessions after* = `5`, speichern; neu verbinden (Anmeldung nötig, wirkt ab der nächsten Anmeldung), dann Fenster schließen **ohne** Abmelden | nach ca. 3 min Warnung in der Sitzung (sichtbar beim erneuten Verbinden), nach 5 min ohne Eingabe meldet der Agent ab: In Benutzung **Nein**, Log der Zuweisung „Session closed due to inactivity“; danach wieder `0` |
 
 Ergebnis bitte als Tabelle (OK / Fehler + Screenshot) zurückmelden.
 

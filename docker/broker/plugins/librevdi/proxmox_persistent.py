@@ -109,6 +109,23 @@ class ProxmoxServicePersistent(ProxmoxServiceFixed):
         required=True,
     )
 
+    # Session policy: enforced by the agent (upstream "max idle"), see session_idle_seconds()
+    idle_logoff = gui.NumericField(
+        label=_("Log off inactive sessions after (minutes)"),
+        order=102,
+        length=4,
+        default=0,
+        min_value=0,
+        max_value=10080,
+        tooltip=_(
+            "0 = off. The agent logs off a session without keyboard or mouse input for this time; "
+            "this includes disconnected sessions. The user is warned two minutes before. "
+            "Takes effect from the next login."
+        ),
+        tab=types.ui.Tab.ADVANCED,
+        required=True,
+    )
+
     @typing.override
     def should_maintain_on_error(self) -> bool:
         return True  # never free a persistent machine because of an error
@@ -144,6 +161,34 @@ def _keep_unused_assignments(sender: typing.Any, instance: ServicePool, **kwargs
             instance.ignores_unused = True
     except Exception:  # service not set yet (new pool being created) - nothing to do
         logger.debug("librevdi: pool %s has no service yet", instance)
+
+
+def session_idle_seconds(userservice: typing.Any) -> int | None:
+    """Idle logoff time (seconds) for a session on a persistent desktop, None if off or not ours."""
+    try:
+        pool = userservice.deployed_service
+        if not is_persistent_pool(pool):
+            return None
+        minutes = pool.service.get_instance().idle_logoff.as_int()
+    except Exception:  # never break a login because of the policy
+        logger.exception("librevdi: reading idle logoff policy of %s", userservice)
+        return None
+    return minutes * 60 if minutes > 0 else None
+
+
+class IdleLogoffPolicy:
+    """Stands in for the (absent) OS manager of persistent pools in the actor login: upstream
+    ``Login.action`` only calls ``max_idle()`` and ``ignore_deadline()`` on it and sends max_idle to
+    the agent, which warns the user and logs the session off when idle (checked by the selfcheck)."""
+
+    def __init__(self, seconds: int) -> None:
+        self.seconds = seconds
+
+    def max_idle(self) -> int:
+        return self.seconds
+
+    def ignore_deadline(self) -> bool:
+        return False  # same as without OS manager: the pool deadline (calendar) applies
 
 
 _original_release_from_logout = UserServiceManager.release_from_logout

@@ -55,6 +55,16 @@ und wartet, bis der Agent bereit ist (etwa 1–2 Minuten). Nur *getrennte* Sitzu
 geschlossen ohne Abmelden) gelten weiter als „in Benutzung“ und werden nicht heruntergefahren.
 Die Prüfung läuft alle zwei Minuten; die Aktionen stehen im Log des Dienstes bzw. der Zuweisung.
 
+**Abmelden getrennter / inaktiver Sitzungen** (Horizon: „Log off after disconnect“): im selben
+Reiter *Log off inactive sessions after (minutes)*. Der Agent meldet eine Sitzung ab, in der so
+lange keine Tastatur- oder Mauseingabe kam – das schließt getrennte Sitzungen ein. Zwei Minuten
+vorher erscheint eine Warnung in der Sitzung. Unterschied zu Horizon: auch eine *verbundene*, aber
+unbenutzte Sitzung wird abgemeldet (Leerlauf-Zeit statt Trennungs-Zeit), denn der Agent meldet
+Trennungen nicht an den Broker. Gilt ab der nächsten Anmeldung. Wer exakt „nach Trennung“ braucht:
+Windows-Richtlinie *Computerkonfiguration → Administrative Vorlagen → Windows-Komponenten →
+Remotedesktopdienste → Remotedesktopsitzungs-Host → Sitzungszeitlimits → Zeitlimit für getrennte
+Sitzungen festlegen* in der VM bzw. im Template.
+
 **Wartung eines einzelnen Pools** (z. B. neue Software auf den VMs eines Pools): im Pool das Feld
 **Tags** auf `maintenance` (oder `wartung`) setzen. Der Pool erscheint im Portal „in Wartung“,
 neue Verbindungen sind gesperrt, laufende Sitzungen bleiben; die Energie-Richtlinie pausiert.

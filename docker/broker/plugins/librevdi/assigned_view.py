@@ -22,6 +22,8 @@ from uds.models import UserService
 from uds.REST.methods.actor_v3 import Login
 from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
 
+from . import proxmox_persistent
+
 
 @dataclasses.dataclass
 class LibreVDIUserServiceItem(UserServiceItem):
@@ -52,11 +54,16 @@ def _userservice_item(
 
 def _process_login(userservice: typing.Any, username: str) -> typing.Any:
     """Upstream stores the user name only when the machine goes from unused to in use, so a second
-    session (e.g. a local admin left logged in) hides the actual user. Keep the latest login."""
-    result = _original_process_login(userservice, username)
+    session (e.g. a local admin left logged in) hides the actual user. Keep the latest login.
+
+    Also hands the idle logoff policy of persistent pools to the agent (as upstream "max idle")."""
+    osmanager = _original_process_login(userservice, username)
     if username:
         userservice.properties["last_username"] = username
-    return result
+    # persistent pools: idle/disconnected session logoff, enforced by the agent via max_idle
+    if osmanager is None and (seconds := proxmox_persistent.session_idle_seconds(userservice)):
+        return proxmox_persistent.IdleLogoffPolicy(seconds)
+    return osmanager
 
 
 def _odata_filter(self: AssignedUserService, qs: typing.Any) -> typing.Any:
