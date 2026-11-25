@@ -169,8 +169,8 @@ den Agent und startet den Dienst, kein Neustart, kein Konfigurationsprogramm nö
 LibreVDI-Agent-unmanaged-Setup-<version>.exe /S /BROKER=<domain> /TOKEN=<Service-Token aus Teil 4>
 ```
 
-In **PowerShell** kehrt der Aufruf sofort zurück, der Installer läuft im Hintergrund weiter –
-mit Warten und Ergebnis:
+In **PowerShell** kehrt ein direkter Aufruf sofort zurück, der Installer läuft im Hintergrund
+weiter (Task-Manager). Zum Warten `| Out-Null` anhängen – oder mit Ergebnis:
 
 ```powershell
 $p = Start-Process -Wait -PassThru .\LibreVDI-Agent-unmanaged-Setup-<version>.exe `

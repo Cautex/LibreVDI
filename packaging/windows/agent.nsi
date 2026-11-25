@@ -212,5 +212,6 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\LibreVDI\LibreVDI Agent konfigurieren.lnk"
   RMDir "$SMPROGRAMS\LibreVDI"
   RMDir /r "$INSTDIR"
+  RMDir "$PROGRAMFILES64\LibreVDI"  ; only if empty (the client may still be installed)
   DeleteRegKey HKLM "${UNINST_KEY}"
 SectionEnd
