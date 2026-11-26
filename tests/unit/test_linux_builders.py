@@ -38,6 +38,10 @@ def test_rocky_builders(component, src, distro, version):
         assert "-DCMAKE_INSTALL_LIBDIR=lib" in out
         assert "-DWITH_OPENH264=OFF" in out and "-DWITH_GFX_H264=OFF" in out
         assert "libavcodec-free-devel" in out
+        if version == "9":
+            assert "libvpx" in out and "libvpx-devel" not in out and out.index("libvpx") < out.index("FreeRDP.git")
+        else:
+            assert "libvpx-devel" in out and "chromium.googlesource.com" not in out
     else:
         assert "libstdc++-static" in out and "libusb" not in out
 

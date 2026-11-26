@@ -113,6 +113,7 @@ def spec(
         *(f"Conflicts: {other}" for other in others),
         "",
         "%global debug_package %{nil}",
+        "%global _build_id_links none",
         "%global __brp_check_rpaths %{nil}",
         # bundled FreeRDP libraries: neither provided to the system nor required from it
         "%global __provides_exclude_from ^/usr/share/(udslauncher|udsactor)/.*$",

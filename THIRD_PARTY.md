@@ -52,6 +52,7 @@ in `.github/workflows/linux-builds.yml`).
 |---|---|---|---|
 | Rust crates linked into the binaries (about 440 agent) | predominantly MIT / Apache-2.0, also BSD, ISC, Zlib, Unicode-3.0, BSL-1.0, OFL-1.1 (fonts) | statically linked | all |
 | FreeRDP 3.x (built from source in the upstream builder image) | Apache-2.0 | shared libraries in `/usr/share/udslauncher` | client |
+| libvpx 1.14 (Rocky Linux 9 only; the distribution has 1.9) | BSD-3-Clause | statically linked into the launcher | client |
 
 All other libraries (FFmpeg, OpenSSL, GTK/X11, libusb, PulseAudio, …) come from the distribution
 (Rocky Linux: FFmpeg from EPEL) as package dependencies and are not shipped by LibreVDI.

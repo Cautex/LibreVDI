@@ -9,6 +9,7 @@ build options and the Rust setup stay those of upstream. Upstream files are not 
   ``*-free`` packages); FreeRDP is installed into ``/usr/local/lib`` (not ``lib64``, the
   ``FREERDP_ROOT`` link path of the launcher). H.264 is off: OpenH264 is not packaged for
   Enterprise Linux and EPEL's FFmpeg has no H.264 decoder - RDP falls back to the other codecs.
+  Rocky 9 (libvpx 1.9) gets a static libvpx (LIBVPX_VERSION) for the launcher.
 
 Usage: make_builder.py client|agent <distro> <Debian13 Dockerfile> <output Dockerfile>
 """
@@ -33,6 +34,16 @@ EL_PACKAGES = {
     " libswresample-free-devel krb5-devel cups-devel fuse3-devel pcsc-lite-devel libvpx-devel opus-devel",
     "agent": _COMMON_EL + " libstdc++-static",
 }
+LIBVPX_VERSION = "1.14.1"
+LIBVPX_REPO = "https://chromium.googlesource.com/webm/libvpx"
+LIBVPX_STEP = (
+    f"RUN git clone --branch v{LIBVPX_VERSION} --depth 1 {LIBVPX_REPO} /libvpx-build \\\n"
+    "  && cd /libvpx-build \\\n"
+    "  && ./configure --prefix=/usr/local --enable-pic --disable-examples --disable-tools --disable-docs"
+    " --disable-unit-tests \\\n"
+    '  && make -j"$(nproc)" && make install && cd / && rm -rf /libvpx-build\n'
+    "ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig\n\n"
+)
 APT_BLOCK = re.compile(r"^RUN apt-get update && apt-get install -y \\\n.*?rm -rf /var/lib/apt/lists/\*\n", re.M | re.S)
 
 
@@ -57,6 +68,14 @@ def rocky(text: str, version: str, component: str) -> str:
     text, n = APT_BLOCK.subn(lambda _m: dnf, text, count=1)
     if n != 1:
         raise SystemExit("make_builder: apt block not found in the Debian 13 Dockerfile (upstream changed?)")
+    if component == "client" and version == "9":
+        # vpx-sys (launcher) needs libvpx >= 1.10, Rocky 9 ships 1.9: static build, linked into the
+        # launcher (nothing extra to install on the desktop; license in THIRD-PARTY-NOTICES)
+        text = text.replace(" libvpx-devel", "")
+        marker = "WORKDIR /freerdp-build\n"
+        if marker not in text:
+            raise SystemExit("make_builder: FreeRDP build step not found (upstream changed?)")
+        text = text.replace(marker, LIBVPX_STEP + marker, 1)
     if component == "client":
         for old, new in (
             (

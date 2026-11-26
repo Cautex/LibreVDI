@@ -71,6 +71,12 @@ jobs:
             args+=(--cargo-dir upstream/uds-client --root launcher
                    --fallback-text BSD-3-Clause=upstream/uds-client/LICENSE
                    --extra "FreeRDP $freerdp|Apache-2.0|notices/FreeRDP-LICENSE.txt")
+            if [ "${{ matrix.distro }}" = Rocky9 ]; then
+              # static libvpx in the launcher (packaging/linux/make_builder.py)
+              vpx=$(python3 -c 'import sys; sys.path.insert(0, "packaging/linux"); import make_builder; print(make_builder.LIBVPX_VERSION)')
+              curl -fsSL "https://chromium.googlesource.com/webm/libvpx/+/refs/tags/v$vpx/LICENSE?format=TEXT" | base64 -d > notices/libvpx-LICENSE.txt
+              args+=(--extra "libvpx $vpx|BSD-3-Clause|notices/libvpx-LICENSE.txt")
+            fi
           else
             args+=(--cargo-dir upstream/uds-actor --fallback-text BSD-3-Clause=upstream/uds-actor/LICENSE)
           fi

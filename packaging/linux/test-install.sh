@@ -21,6 +21,7 @@ common='
 missing=0
 for f in $(files); do
   [ -f "$f" ] || continue
+  case "$f" in /usr/lib/.build-id/*) continue ;; esac   # RPM build-id links ($ORIGIN differs)
   if head -c 4 "$f" | grep -q ELF; then
     # programs must resolve everything (rpath $ORIGIN); bundled libraries find each other only
     # once the launcher has loaded them, so they are checked with their own directory
