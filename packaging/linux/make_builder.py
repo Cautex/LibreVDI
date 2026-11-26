@@ -37,7 +37,9 @@ EL_PACKAGES = {
 LIBVPX_VERSION = "1.14.1"
 LIBVPX_REPO = "https://chromium.googlesource.com/webm/libvpx"
 LIBVPX_STEP = (
-    f"RUN git clone --branch v{LIBVPX_VERSION} --depth 1 {LIBVPX_REPO} /libvpx-build \\\n"
+    # assembler for libvpx: nasm (AppStream/CRB) or yasm (EPEL)
+    "RUN (command -v nasm || dnf install -y nasm || dnf install -y yasm) \\\n"
+    f"  && git clone --branch v{LIBVPX_VERSION} --depth 1 {LIBVPX_REPO} /libvpx-build \\\n"
     "  && cd /libvpx-build \\\n"
     "  && ./configure --prefix=/usr/local --enable-pic --disable-examples --disable-tools --disable-docs"
     " --disable-unit-tests \\\n"
