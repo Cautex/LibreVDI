@@ -13,6 +13,7 @@ cleanup job deletes them after ``keepInfoTime``, default 4 h).
 from __future__ import annotations
 
 import dataclasses
+import logging
 import typing
 
 from django.utils.translation import gettext_lazy as _
@@ -34,7 +35,10 @@ def logged_user(in_use: bool, props: dict[str, typing.Any]) -> str:
     return str(props.get("last_username") or "") if in_use else ""
 
 
+logger = logging.getLogger(__name__)
+
 _original_process_login = Login.process_login
+_original_login_action = Login.action
 _original_odata_filter = AssignedUserService.odata_filter
 _original_item = AssignedUserService.userservice_item
 _original_table = AssignedUserService.get_table
@@ -64,6 +68,29 @@ def _process_login(userservice: typing.Any, username: str) -> typing.Any:
     if osmanager is None and (seconds := proxmox_persistent.session_idle_seconds(userservice)):
         return proxmox_persistent.IdleLogoffPolicy(seconds)
     return osmanager
+
+
+# Session types (sent by the agent) whose idle time the agent cannot measure: the Linux agent
+# reads it from the X11 screensaver extension, which under Wayland (via Xwayland) only sees input
+# to X11 windows - an active user could look idle and be logged off.
+IDLE_UNRELIABLE_SESSION_TYPES = ("wayland",)
+
+
+def _login_action(self: Login) -> typing.Any:
+    """No idle logoff (max_idle) for sessions whose idle time the agent cannot measure."""
+    response = _original_login_action(self)
+    try:
+        session_type = str(self._params.get("session_type") or "").strip().lower()
+        inner = response.get("result") if isinstance(response, dict) else None
+        if session_type in IDLE_UNRELIABLE_SESSION_TYPES and isinstance(inner, dict) and inner.get("max_idle"):
+            logger.info(
+                "librevdi: idle logoff not sent to the agent: idle time is not measurable in %s sessions",
+                session_type,
+            )
+            inner["max_idle"] = None
+    except Exception:  # never break a login because of the policy
+        logger.exception("librevdi: checking the session type of a login")
+    return response
 
 
 def _odata_filter(self: AssignedUserService, qs: typing.Any) -> typing.Any:
@@ -97,6 +124,8 @@ def register() -> None:
         AssignedUserService.userservice_item = staticmethod(_userservice_item)  # type: ignore[assignment]
     if Login.process_login is not _process_login:
         Login.process_login = staticmethod(_process_login)  # type: ignore[assignment]
+    if Login.action is not _login_action:
+        Login.action = _login_action  # type: ignore[method-assign]
     if AssignedUserService.odata_filter is not _odata_filter:
         AssignedUserService.odata_filter = _odata_filter  # type: ignore[method-assign]
     if AssignedUserService.get_table is not _get_table:

@@ -52,7 +52,6 @@ def upstream_contract() -> list[Result]:
     from uds.core.types.rest import TableField
     from uds.core.util.config import GlobalConfig
     from uds.models import Provider, Service, ServicePool, ServicePoolGroup, Tag, UserService
-    from uds.REST.methods.actor_v3 import Login
     from uds.REST.methods.user_services import UserServiceItem
     from uds.services.Proxmox.proxmox.client import ProxmoxClient
     from uds.services.Proxmox.service_fixed import ProxmoxServiceFixed
@@ -81,9 +80,10 @@ def upstream_contract() -> list[Result]:
     _check_params(r, assigned_view._original_odata_filter, ["self", "qs"], "AssignedUserService.odata_filter")
     _check_params(r, pool_maintenance._original_is_in_maintenance, ["self"], "ServicePool.is_in_maintenance")
     _check_params(r, assigned_view._original_process_login, ["userservice", "username"], "actor Login.process_login")
+    _check_params(r, assigned_view._original_login_action, ["self"], "actor Login.action")
     # the idle logoff policy stands in for the OS manager: only these two methods may be used on it
     try:
-        used = set(re.findall(r"osmanager\.(\w+)\(", inspect.getsource(Login.action)))
+        used = set(re.findall(r"osmanager\.(\w+)\(", inspect.getsource(assigned_view._original_login_action)))
     except (OSError, TypeError):
         used = set()
     _check(
@@ -198,6 +198,7 @@ def librevdi_active() -> list[Result]:
     _check(r, AssignedUserService.get_table is assigned_view._get_table, "hook: assigned services column titles")
     _check(r, AssignedUserService.odata_filter is assigned_view._odata_filter, "hook: hide removed machines")
     _check(r, Login.process_login is assigned_view._process_login, "hook: latest login updates 'Logged-in user'")
+    _check(r, Login.action is assigned_view._login_action, "hook: no idle logoff for Wayland sessions")
     _check(r, ServicePool.is_in_maintenance is pool_maintenance._is_in_maintenance, "hook: maintenance per pool")
     _check(
         r,
