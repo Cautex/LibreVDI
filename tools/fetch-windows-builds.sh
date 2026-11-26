@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Downloads the LibreVDI installers and packages (Windows .exe, Linux .deb; agent + client) into
+# Downloads the LibreVDI installers and packages (Windows .exe, Linux .deb/.rpm; agent + client) into
 # ./downloads, so LibreVDI can offer them in the portal / admin UI. Release images already contain
 # the installers of their release; this is for newer builds or self-built images.
 #
@@ -20,20 +20,20 @@ API="https://api.github.com/repos/${REPO}"
 
 if [[ -n "${RELEASE:-}" ]]; then
   mkdir -p "$DEST"
-  find "$DEST" -maxdepth 1 \( -name 'LibreVDI-*-Setup-*.exe' -o -name 'librevdi-*_*.deb' \) -delete
+  find "$DEST" -maxdepth 1 \( -name 'LibreVDI-*-Setup-*.exe' -o -name 'librevdi-*.deb' -o -name 'librevdi-*.rpm' \) -delete
   echo "== release ${RELEASE}"
   curl -fsSL "${API}/releases/tags/${RELEASE}" |
     python3 -c 'import json,sys
 for a in json.load(sys.stdin)["assets"]:
     n = a["name"]
-    if n.startswith("LibreVDI-") and n.endswith(".exe") or n.startswith("librevdi-") and n.endswith(".deb") \
+    if n.startswith("LibreVDI-") and n.endswith(".exe") or n.startswith("librevdi-") and n.endswith((".deb", ".rpm")) \
             or n == "SHA256SUMS":
         print(a["name"], a["browser_download_url"])' |
     while read -r name url; do
       curl -fsSL -o "${DEST}/${name}" "$url"
       echo "   ${name}"
     done
-  (cd "$DEST" && grep -E 'LibreVDI-.*\.exe$|librevdi-.*\.deb$' SHA256SUMS | sha256sum -c -) && rm -f "${DEST}/SHA256SUMS"
+  (cd "$DEST" && grep -E 'LibreVDI-.*\.exe$|librevdi-.*\.(deb|rpm)$' SHA256SUMS | sha256sum -c -) && rm -f "${DEST}/SHA256SUMS"
   echo "== saved to ${DEST}. Activate with: docker compose restart broker-web"
   exit 0
 fi
@@ -83,7 +83,7 @@ done
 
 mkdir -p "$DEST"
 found=0
-for pattern in 'LibreVDI-*-Setup-*.exe' 'librevdi-*_*.deb'; do
+for pattern in 'LibreVDI-*-Setup-*.exe' 'librevdi-*.deb' 'librevdi-*.rpm'; do
   # keep only the version being fetched (older installers would just pile up)
   find "$tmp" -name "$pattern" | grep -q . || continue
   find "$DEST" -maxdepth 1 -name "$pattern" -delete

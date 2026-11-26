@@ -125,13 +125,10 @@ def add_files(root: Path, specs: list[str]) -> None:
         os.chmod(target, int(mode or "0755", 8))
 
 
-def rebrand_tree(
-    root: Path, name: str, version: str, description: str, icon_src: Path | None, extra: list[str] | None = None
-) -> None:
+def rebrand_files(root: Path, name: str, icon_src: Path | None, extra: list[str] | None = None) -> None:
+    """Package-format independent part (also used for RPM by build_rpm.py): extra files, icon,
+    visible texts of desktop entries, systemd units, polkit policies and MIME definitions."""
     add_files(root, extra or [])
-    control = root / "DEBIAN" / "control"
-    control.write_text(rebrand_control(control.read_text(encoding="utf-8"), name, version, description), "utf-8")
-
     icon_target = None
     if icon_src is not None:
         icon_dir = root / "usr" / "share" / "icons" / "hicolor" / "256x256" / "apps"
@@ -149,6 +146,14 @@ def rebrand_tree(
             new = set_desktop_icon(new, icon_target)
         if new != text:
             path.write_text(new, encoding="utf-8")
+
+
+def rebrand_tree(
+    root: Path, name: str, version: str, description: str, icon_src: Path | None, extra: list[str] | None = None
+) -> None:
+    control = root / "DEBIAN" / "control"
+    control.write_text(rebrand_control(control.read_text(encoding="utf-8"), name, version, description), "utf-8")
+    rebrand_files(root, name, icon_src, extra)
     regenerate_md5sums(root)
 
 

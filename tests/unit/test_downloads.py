@@ -111,14 +111,18 @@ def test_publish_linux_packages(tmp_path):
     app = tmp_path / "app"
     src.mkdir()
     for name in (
-        "librevdi-client_0.1.0~dev.8_amd64-debian13.deb",
-        "librevdi-client_0.1.0~dev.12_amd64-debian13.deb",
+        "librevdi-client_0.1.0~dev.8_amd64-ubuntu2604.deb",
+        "librevdi-client_0.1.0~dev.12_amd64-ubuntu2604.deb",
         "librevdi-client_0.1.0~dev.12_amd64-ubuntu2404.deb",
-        "librevdi-agent_0.1.0~dev.12_amd64-debian12.deb",
-        "librevdi-agent-unmanaged_0.1.0~dev.12_amd64-debian12.deb",
+        "librevdi-client-0.1.0~dev.12.x86_64-rocky9.rpm",
+        "librevdi-agent_0.1.0~dev.12_amd64-ubuntu2404.deb",
+        "librevdi-agent-unmanaged_0.1.0~dev.12_amd64-ubuntu2404.deb",
+        "librevdi-agent-0.1.0~dev.11.x86_64-rocky10.rpm",
+        "librevdi-agent-0.1.0~dev.12.x86_64-rocky10.rpm",
+        "librevdi-agent-unmanaged-0.1.0~dev.12.x86_64-rocky10.rpm",
     ):
         (src / name).write_bytes(name.encode())
-    stale = app / "static/clients/librevdi-client_0.1.0~dev.5_amd64-debian13.deb"
+    stale = app / "static/clients/librevdi-client_0.1.0~dev.5_amd64-ubuntu2604.deb"
     stale.parent.mkdir(parents=True)
     stale.write_bytes(b"old")
 
@@ -126,21 +130,32 @@ def test_publish_linux_packages(tmp_path):
 
     clients = sorted(p.name for p in (app / "static/clients").iterdir())
     assert clients == [
-        "librevdi-client_0.1.0~dev.12_amd64-debian13.deb",
+        "librevdi-client-0.1.0~dev.12.x86_64-rocky9.rpm",
         "librevdi-client_0.1.0~dev.12_amd64-ubuntu2404.deb",
+        "librevdi-client_0.1.0~dev.12_amd64-ubuntu2604.deb",
     ]
     agents = sorted(p.name for p in (app / "uds/osmanagers/LinuxOsManager/files").iterdir())
     assert agents == [
-        "librevdi-agent-unmanaged_0.1.0~dev.12_amd64-debian12.deb",
-        "librevdi-agent_0.1.0~dev.12_amd64-debian12.deb",
+        "librevdi-agent-0.1.0~dev.12.x86_64-rocky10.rpm",  # newest only; unmanaged not mixed up
+        "librevdi-agent-unmanaged-0.1.0~dev.12.x86_64-rocky10.rpm",
+        "librevdi-agent-unmanaged_0.1.0~dev.12_amd64-ubuntu2404.deb",
+        "librevdi-agent_0.1.0~dev.12_amd64-ubuntu2404.deb",
     ]
-    assert len(published) == 4
+    assert len(published) == 7
 
 
 def test_version_key_debian_prerelease(tmp_path):
-    final = tmp_path / "librevdi-client_0.2.0_amd64-debian12.deb"
-    rc = tmp_path / "librevdi-client_0.2.0~rc.1_amd64-debian12.deb"
+    final = tmp_path / "librevdi-client_0.2.0_amd64-ubuntu2404.deb"
+    rc = tmp_path / "librevdi-client_0.2.0~rc.1_amd64-ubuntu2404.deb"
     for f in (rc, final):
         f.write_bytes(b"x")
     assert downloads.newest(str(tmp_path / "*.deb")) == str(final)
     assert downloads.version_key(str(rc))[0] == (0, 2, 0)
+
+
+def test_version_key_rpm(tmp_path):
+    old = tmp_path / "librevdi-agent-0.1.0~dev.9.x86_64-rocky9.rpm"
+    new = tmp_path / "librevdi-agent-0.1.0~dev.10.x86_64-rocky9.rpm"
+    for f in (old, new):
+        f.write_bytes(b"x")
+    assert downloads.newest(str(tmp_path / "librevdi-agent-[0-9]*.x86_64-rocky9.rpm")) == str(new)

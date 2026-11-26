@@ -9,9 +9,10 @@ OpenUDS broker serves:
              plugin points the portal's Windows entry to it, ``/uds/page/launcher-download``)
 * agent   -> ``uds/osmanagers/WindowsOsManager/files/UDSActor[Unmanaged]Setup-<version>.exe``
              (listed in the admin UI download section)
-* Linux client packages (``librevdi-client_<version>_amd64-<distro>.deb``) -> static ``clients/``
+* Linux client packages (``librevdi-client_<version>_amd64-<distro>.deb``, Ubuntu;
+  ``librevdi-client-<version>.x86_64-<distro>.rpm``, Rocky Linux) -> static ``clients/``
   (file name kept; listed in the portal's Linux section by the LibreVDI plugin)
-* Linux agent packages (``librevdi-agent[-unmanaged]_<version>_amd64-<distro>.deb``) ->
+* Linux agent packages (``librevdi-agent[-unmanaged]`` .deb / .rpm, names as above) ->
   ``uds/osmanagers/LinuxOsManager/files/`` (file name kept; registered by the LibreVDI plugin)
 
 Missing files are skipped. Runs once when the web container starts.
@@ -36,16 +37,24 @@ TARGETS: tuple[tuple[str, str], ...] = (
         "uds/osmanagers/WindowsOsManager/files/UDSActorUnmanagedSetup-{version}.exe",
     ),
 )
-LINUX_DISTROS: tuple[str, ...] = ("debian12", "debian13", "ubuntu2404")
+DEB_DISTROS: tuple[str, ...] = ("ubuntu2404", "ubuntu2604")
+RPM_DISTROS: tuple[str, ...] = ("rocky9", "rocky10")
 LINUX_AGENT_DIR = "uds/osmanagers/LinuxOsManager/files"
+_LINUX_PACKAGES = (
+    ("librevdi-client", "static/clients"),
+    ("librevdi-agent", LINUX_AGENT_DIR),
+    ("librevdi-agent-unmanaged", LINUX_AGENT_DIR),
+)
 TARGETS += tuple(
     (f"{package}_*_amd64-{distro}.deb", f"{target_dir}/{{source}}")
-    for package, target_dir in (
-        ("librevdi-client", "static/clients"),
-        ("librevdi-agent", LINUX_AGENT_DIR),
-        ("librevdi-agent-unmanaged", LINUX_AGENT_DIR),
-    )
-    for distro in LINUX_DISTROS
+    for package, target_dir in _LINUX_PACKAGES
+    for distro in DEB_DISTROS
+)
+# "[0-9]" after the name: librevdi-agent-* would also match librevdi-agent-unmanaged-*
+TARGETS += tuple(
+    (f"{package}-[0-9]*.x86_64-{distro}.rpm", f"{target_dir}/{{source}}")
+    for package, target_dir in _LINUX_PACKAGES
+    for distro in RPM_DISTROS
 )
 
 
@@ -60,6 +69,7 @@ def upstream_version(version_file: str = VERSION_FILE) -> str:
 _VERSION_RES = (
     re.compile(r"-Setup-(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?\.exe$"),
     re.compile(r"_(\d+(?:\.\d+)*)(?:~([0-9A-Za-z.]+))?_[0-9a-z]+(?:-[0-9a-z]+)?\.deb$"),  # Debian: ~ = pre-release
+    re.compile(r"-(\d+(?:\.\d+)*)(?:~([0-9A-Za-z.]+))?\.x86_64(?:-[0-9a-z]+)?\.rpm$"),  # RPM: same convention
 )
 
 

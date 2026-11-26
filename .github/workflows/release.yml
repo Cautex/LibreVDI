@@ -1,8 +1,8 @@
 name: Release
 
 # Builds a LibreVDI release from a version tag (v0.2.0, v0.2.0-rc.1):
-#   1. Windows installers (agent managed/unmanaged, client) and Linux packages (.deb for Debian 12,
-#      Debian 13, Ubuntu 24.04) with the release version
+#   1. Windows installers (agent managed/unmanaged, client) and Linux packages (.deb for Ubuntu
+#      24.04 / 26.04, .rpm for Rocky Linux 9 / 10) with the release version
 #   2. broker image (installers and packages bundled) and tunnel image, smoke-tested, pushed to GHCR
 #   3. a DRAFT GitHub release with installers, packages, license notices and SHA256SUMS
 #
@@ -107,10 +107,12 @@ jobs:
       - name: Bundle installers and packages into the broker image
         run: |
           cp windows/LibreVDI-*-Setup-"$VERSION".exe downloads/
-          cp linux/librevdi-*_"${VERSION//-/\~}"_amd64-*.deb downloads/
+          pkg_version=${VERSION//-/\~}
+          cp linux/librevdi-*_"$pkg_version"_amd64-*.deb linux/librevdi-*-"$pkg_version".x86_64-*.rpm downloads/
           ls -l downloads
           test "$(ls downloads/LibreVDI-*-Setup-"$VERSION".exe | wc -l)" -eq 3
-          test "$(ls downloads/librevdi-*.deb | wc -l)" -eq 9   # client, agent, agent-unmanaged x 3 distributions
+          # client, agent, agent-unmanaged x (Ubuntu 24.04, 26.04, Rocky Linux 9, 10)
+          test "$(ls downloads/librevdi-*.deb downloads/librevdi-*.rpm | wc -l)" -eq 12
       - uses: docker/setup-buildx-action@v3
       - name: Build broker image
         uses: docker/build-push-action@v6
@@ -136,7 +138,7 @@ jobs:
           cache-from: type=gha,scope=tunnel
       - name: Smoke test (release images, bundled installers, no ./downloads mount content)
         run: |
-          rm -f downloads/*.exe downloads/*.deb
+          rm -f downloads/*.exe downloads/*.deb downloads/*.rpm
           cp .env.example .env
           sed -i "s/CHANGE_ME_DB_PASSWORD/$(openssl rand -hex 16)/; s/CHANGE_ME_ADMIN_PASSWORD/$(openssl rand -hex 12)/" .env
           {
@@ -194,7 +196,7 @@ jobs:
           mkdir assets
           cp windows/LibreVDI-*-Setup-"$VERSION".exe windows/THIRD-PARTY-NOTICES-*.txt \
              windows/LibreVDI-Client-LGPL-sources-"$VERSION".zip assets/
-          cp linux/librevdi-*.deb assets/
+          cp linux/librevdi-*.deb linux/librevdi-*.rpm assets/
           cp THIRD_PARTY.md assets/THIRD_PARTY.md
           (cd assets && sha256sum -- * > SHA256SUMS)
           cat assets/SHA256SUMS

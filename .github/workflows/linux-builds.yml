@@ -1,8 +1,9 @@
 name: Linux builds (agent + client)
 
-# Builds the upstream OpenUDS 5.0 launcher (client) and actor (agent) for Linux with the upstream
-# Docker builders, rebrands the packages as LibreVDI and tests the installation in a clean
-# container of each distribution. Native packages per distribution (glibc and FFmpeg differ).
+# Builds the upstream OpenUDS 5.0 launcher (client) and actor (agent) for the supported Linux
+# desktops - Ubuntu 24.04 / 26.04 (.deb) and Rocky Linux 9 / 10 (.rpm) - with builders derived
+# from the upstream Debian 13 builder, packages them as LibreVDI and tests the installation in a
+# clean container of each distribution. Native packages per distribution (glibc and FFmpeg differ).
 # Also called by release.yml with the release version.
 
 on:
@@ -41,7 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         component: [client, agent]
-        distro: [Debian12, Debian13, Ubuntu2404]
+        distro: [Ubuntu2404, Ubuntu2604, Rocky9, Rocky10]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,5 +104,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: librevdi-${{ matrix.component }}-linux-${{ matrix.distro }}
-          path: out/*.deb
+          path: |
+            out/*.deb
+            out/*.rpm
           retention-days: 14

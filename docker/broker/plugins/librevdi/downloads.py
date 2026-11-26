@@ -55,33 +55,43 @@ def _published_names() -> dict[str, str]:
         return {}
 
 
-_DISTRO_NAMES = {"debian12": "Debian 12", "debian13": "Debian 13", "ubuntu2404": "Ubuntu 24.04"}
-_DEB_RE = re.compile(r"^(librevdi-[a-z-]+)_[^_]+_amd64-([0-9a-z]+)\.deb$")
+_DISTRO_NAMES = {
+    "ubuntu2404": "Ubuntu 24.04",
+    "ubuntu2604": "Ubuntu 26.04",
+    "rocky9": "Rocky Linux 9",
+    "rocky10": "Rocky Linux 10",
+}
+# librevdi-client_0.1.0~dev.5_amd64-ubuntu2404.deb, librevdi-client-0.1.0~dev.5.x86_64-rocky9.rpm
+_PACKAGE_RE = re.compile(r"^(librevdi-[a-z-]+?)(?:_[^_]+_amd64-|-\d[^/]*\.x86_64-)([0-9a-z]+)\.(deb|rpm)$")
+_MIMETYPES = {"deb": "application/x-debian-package", "rpm": "application/x-rpm"}
 _AGENT_DESCRIPTIONS = {
     "librevdi-agent-unmanaged": "LibreVDI Agent (unmanaged) for persistent Linux desktops - {distro}",
     "librevdi-agent": "LibreVDI Agent (managed) for cloned Linux desktops - {distro}",
 }
 
 
-def _linux_packages(directory: str, package: str) -> list[tuple[str, str]]:
-    """(file name, distribution name) of the packages of ``package`` in ``directory``."""
+def _linux_packages(directory: str, package: str) -> list[tuple[str, str, str]]:
+    """(file name, distribution name, format) of the packages of ``package`` in ``directory``,
+    in the order of ``_DISTRO_NAMES``."""
     found = []
-    for path in sorted(glob.glob(os.path.join(directory, f"{package}_*.deb"))):
-        match = _DEB_RE.match(os.path.basename(path))
+    for path in glob.glob(os.path.join(directory, "librevdi-*")):
+        match = _PACKAGE_RE.match(os.path.basename(path))
         if match and match.group(1) == package:
-            found.append((os.path.basename(path), _DISTRO_NAMES.get(match.group(2), match.group(2))))
-    return found
+            found.append((os.path.basename(path), match.group(2), match.group(3)))
+    order = list(_DISTRO_NAMES)
+    found.sort(key=lambda f: (order.index(f[1]) if f[1] in order else len(order), f[0]))
+    return [(name, _DISTRO_NAMES.get(distro, distro), fmt) for name, distro, fmt in found]
 
 
 def _register_linux_agents(manager: typing.Any, app: str) -> None:
     directory = os.path.join(app, "uds", "osmanagers", "LinuxOsManager", "files")
     for package, description in _AGENT_DESCRIPTIONS.items():
-        for name, distro in _linux_packages(directory, package):
+        for name, distro, fmt in _linux_packages(directory, package):
             manager.register(
                 name,
                 description.format(distro=distro),
                 os.path.join(directory, name),
-                mimetype="application/x-debian-package",
+                mimetype=_MIMETYPES[fmt],
             )
 
 
@@ -91,7 +101,7 @@ def _linux_clients(base_url: str) -> list[typing.Any]:
         types.plugins.UDSClientPlugin(
             url=f"{base_url}/{name}", description=f"LibreVDI Client ({distro})", name="Linux", legacy=False
         )
-        for name, distro in _linux_packages(clients_dir, "librevdi-client")
+        for name, distro, _fmt in _linux_packages(clients_dir, "librevdi-client")
     ]
 
 
