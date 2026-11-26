@@ -37,11 +37,11 @@ EL_PACKAGES = {
 LIBVPX_VERSION = "1.14.1"
 LIBVPX_REPO = "https://chromium.googlesource.com/webm/libvpx"
 LIBVPX_STEP = (
-    # assembler for libvpx: nasm (AppStream/CRB) or yasm (EPEL)
-    "RUN (command -v nasm || dnf install -y nasm || dnf install -y yasm) \\\n"
+    # assembler for libvpx (nasm); its configure looks it up with "which", missing in the image
+    "RUN dnf install -y nasm which \\\n"
     f"  && git clone --branch v{LIBVPX_VERSION} --depth 1 {LIBVPX_REPO} /libvpx-build \\\n"
     "  && cd /libvpx-build \\\n"
-    "  && ./configure --prefix=/usr/local --enable-pic --disable-examples --disable-tools --disable-docs"
+    "  && ./configure --as=nasm --prefix=/usr/local --enable-pic --disable-examples --disable-tools --disable-docs"
     " --disable-unit-tests \\\n"
     '  && make -j"$(nproc)" && make install && cd / && rm -rf /libvpx-build\n'
     "ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig\n\n"
