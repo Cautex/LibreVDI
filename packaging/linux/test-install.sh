@@ -35,7 +35,8 @@ for f in $(files); do
 done
 [ $missing -eq 0 ]
 # checked in the package: minimised images (ubuntu:*) do not install /usr/share/doc
-contents | grep -q "/usr/share/doc/$pkg/THIRD-PARTY-NOTICES.txt"
+contents >/tmp/contents.txt
+grep -q "/usr/share/doc/$pkg/THIRD-PARTY-NOTICES.txt" /tmp/contents.txt
 echo "ok    third-party license notices"
 if [ "$pkg" = librevdi-agent-unmanaged ]; then
   echo ci-test-token-0123456789 | librevdi-agent-configure --broker vdi.example.test --no-restart
@@ -55,8 +56,12 @@ for package in "${packages[@]}"; do
   if [[ "$name" == *.deb ]]; then
     # shellcheck disable=SC2016
     setup='
-      apt-get update -qq
-      apt-get install -y -qq "/pkgs/$file" >/tmp/install.log 2>&1 || { tail -30 /tmp/install.log; exit 1; }
+      # retries: mirrors are sometimes briefly out of sync (404 for a just replaced package)
+      for try in 1 2 3; do
+        apt-get update -qq && apt-get install -y -qq "/pkgs/$file" >/tmp/install.log 2>&1 && break
+        [ $try -eq 3 ] && { tail -30 /tmp/install.log; exit 1; }
+        sleep 20
+      done
       pkg=$(dpkg-deb -f "/pkgs/$file" Package)
       echo "installed $pkg $(dpkg-query -W -f="\${Version}" "$pkg")"
       files() { dpkg -L "$pkg"; }
@@ -65,8 +70,11 @@ for package in "${packages[@]}"; do
     # EPEL provides the FFmpeg libraries of the client (documented in the Rocky guide)
     # shellcheck disable=SC2016
     setup='
-      dnf install -y -q epel-release >/dev/null
-      dnf install -y -q "/pkgs/$file" >/tmp/install.log 2>&1 || { tail -30 /tmp/install.log; exit 1; }
+      for try in 1 2 3; do
+        dnf install -y -q epel-release >/dev/null 2>&1 && dnf install -y -q "/pkgs/$file" >/tmp/install.log 2>&1 && break
+        [ $try -eq 3 ] && { tail -30 /tmp/install.log; exit 1; }
+        sleep 20
+      done
       pkg=$(rpm -qp --qf "%{NAME}" "/pkgs/$file")
       echo "installed $pkg $(rpm -q --qf "%{VERSION}-%{RELEASE}" "$pkg")"
       files() { rpm -ql "$pkg"; }

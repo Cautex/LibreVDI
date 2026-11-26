@@ -74,3 +74,13 @@ def test_rpm_spec_and_file_list(tmp_path):
     assert "Obsoletes: udsactor-unmanaged" in text and "Conflicts: librevdi-agent" in text
     assert "systemctl enable udsactor.service" in text
     assert "__requires_exclude" in text
+
+
+def test_rpm_bundled_libraries_executable(tmp_path):
+    lib = tmp_path / "usr/share/udslauncher/libwinpr3.so.3.26.0"
+    lib.parent.mkdir(parents=True)
+    lib.write_bytes(b"\x7fELF")
+    lib.chmod(0o644)
+    (lib.parent / "libwinpr3.so.3").symlink_to(lib.name)
+    build_rpm.make_libraries_executable(tmp_path)
+    assert lib.stat().st_mode & 0o777 == 0o755

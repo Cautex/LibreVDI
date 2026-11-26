@@ -84,6 +84,15 @@ update-mime-database /usr/share/mime >/dev/null 2>&1 || :
 """
 
 
+def make_libraries_executable(root: Path) -> None:
+    """The upstream Makefile installs the bundled .so files with mode 0644; RPM's dependency
+    generator only scans executable ELF files, so their requirements (e.g. libicu for winpr) would
+    be missing. Shared libraries are 0755 on RPM-based systems anyway."""
+    for path in root.rglob("*.so*"):
+        if path.is_file() and not path.is_symlink():
+            path.chmod(0o755)
+
+
 def file_list(root: Path, name: str) -> list[str]:
     own_dirs = (*PRIVATE_DIRS, f"/usr/share/doc/{name}")
     entries = []
@@ -177,6 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         if name == "librevdi-agent-unmanaged":
             extra.append(f"{CONFIGURE_TOOL}:/usr/sbin/librevdi-agent-configure")
         rebrand_deb.rebrand_files(root, name, args.icon, extra)
+        make_libraries_executable(root)
 
         in_container = "/crate/" + work.relative_to(crate).as_posix()
         others = [n for n in names if n != name]
