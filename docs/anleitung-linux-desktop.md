@@ -15,6 +15,20 @@ Server ohne grafische Oberfläche gehören nicht in LibreVDI – dafür bleibt S
 > **Stand:** Pakete in der CI gebaut und in sauberen Containern installiert. Eine echte Sitzung
 > (VM + RDP-Server + Broker) ist **noch nicht im Lab getestet**. Rückmeldung über den Testauftrag.
 
+**Schnellweg:** Teil 1 (VM anlegen, Benutzer) von Hand, dann erledigt ein Skript Teil 2 und 4 in
+einem Durchlauf (RDP-Server, keine automatische Anmeldung, Firewall, Agent installieren und
+konfigurieren, GNOME-Leerlauf-Abmeldung). Agent-Paket aus der Verwaltung (Downloads) und
+`tools/setup-linux-desktop.sh` aus dem Repository in die VM kopieren, dann:
+
+```bash
+sudo ./setup-linux-desktop.sh --broker <domain> --dry-run   # zeigt nur, was passieren würde
+sudo ./setup-linux-desktop.sh --broker <domain>             # fragt Service-Token und RDP-Passwort ab
+sudo reboot
+```
+
+Optionen: `--rdp-user` (Standard `rdp-vdi`), `--idle-logout MINUTEN` (Standard 30, 0 = aus),
+`--no-verify-ssl`, `--agent-package DATEI`. Danach weiter mit Teil 3 und 5.
+
 ## Welcher RDP-Server?
 
 Der Desktop braucht einen RDP-Server, der *mehrere Benutzer* über den Anmeldebildschirm

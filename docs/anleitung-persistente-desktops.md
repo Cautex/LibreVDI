@@ -251,8 +251,27 @@ und setzt den Status auf **Gültig**.
 | 7b | Wartung **eines Pools**: Pool bearbeiten → Feld **Tags** → `maintenance` (oder `wartung`) eintragen, speichern | nur dieser Pool „in Wartung“ (Portal und Pool-Liste), andere Pools normal; Tag entfernen = Wartung aus |
 | 7 | Wartung: **Services → Anbieter → Proxmox Lab → Instandhaltung** an | Pool im Portal „in Wartung“, keine neuen Verbindungen, bestehende Sitzungen bleiben; Energie-Richtlinie pausiert; danach wieder aus |
 | 8 | Leerlauf-Abmeldung: im Dienst *Log off inactive sessions after* = `5`, speichern; neu verbinden (Anmeldung nötig, wirkt ab der nächsten Anmeldung), dann Fenster schließen **ohne** Abmelden | nach ca. 3 min Warnung in der Sitzung (sichtbar beim erneuten Verbinden), nach 5 min ohne Eingabe meldet der Agent ab: In Benutzung **Nein**, Log der Zuweisung „Session closed due to inactivity“; danach wieder `0` |
+| 9 | *Zugewiesene Services* ansehen, VM in Proxmox herunterfahren, nach ca. 1 min Liste neu laden | Spalte **VM-Energiezustand**: `Ein` → `Aus` |
+| 10 | Agent-Dienst in der VM einmal neu starten (`sc.exe stop LibreVDIAgent` / `start`), dann auf dem Docker-Host: `docker compose exec broker-web python -m librevdi_ext.session list` | Zeile der VM mit *agent connection* **registered** |
+| 11 | Als `max` verbunden: `… session message --pool "Windows 11 persistent" --user max "Test"`, danach `… session logoff --pool "Windows 11 persistent" --user max` | Meldung erscheint in der Sitzung (Ausgabe `sent`); danach wird `max` abgemeldet, In Benutzung **Nein** |
 
 Ergebnis bitte als Tabelle (OK / Fehler + Screenshot) zurückmelden.
+
+## Sitzungen aus der Verwaltung steuern
+
+Abmelden und Nachrichten senden gehen derzeit über die Kommandozeile auf dem Docker-Host (eigene
+Knöpfe in der Oberfläche folgen mit Phase 2e; die REST-Aktionen dafür gibt es schon:
+`POST /uds/rest/servicespools/<pool>/services/<zuweisung>/logoff` bzw. `…/message`):
+
+```bash
+docker compose exec broker-web python -m librevdi_ext.session list                    # alle persistenten Zuweisungen
+docker compose exec broker-web python -m librevdi_ext.session message --pool "Windows 11 persistent" --user max "In 10 Minuten Wartung"
+docker compose exec broker-web python -m librevdi_ext.session logoff  --pool "Windows 11 persistent" --user max
+```
+
+Ergebnis `sent` = der Agent hat die Anfrage angenommen; `no-connection` = der Agent hat seine
+Rückverbindungs-Adresse noch nicht gemeldet (Agent-Dienst in der VM neu starten oder einmal
+anmelden); `failed` = Agent nicht erreichbar (VM aus, Port 43910 in der Firewall zu).
 
 ## Fehlerbilder
 

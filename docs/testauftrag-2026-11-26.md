@@ -22,14 +22,14 @@ docker compose build
 docker compose up -d
 GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh   # holt jetzt Windows- UND Linux-Builds
 docker compose restart broker-web
-docker compose exec broker-web python -m librevdi_ext.selfcheck --quiet   # "selfcheck 73/73 ok"
+docker compose exec broker-web python -m librevdi_ext.selfcheck --quiet   # "selfcheck 83/83 ok"
 ```
 
 `fetch-windows-builds.sh` legt neben den `.exe` jetzt auch `librevdi-*.deb` und `librevdi-*.rpm` in `downloads/` ab.
 
 | # | Prüfung | Erwartung |
 |---|---|---|
-| 0.1 | Selbsttest (letzte Zeile oben) | `73/73 ok` |
+| 0.1 | Selbsttest (letzte Zeile oben) | `83/83 ok` |
 | 0.2 | Portal → **LibreVDI Client** | Abschnitt Windows *und* Linux; Linux: „LibreVDI Client (Ubuntu 24.04)“, „(Ubuntu 26.04)“, „(Rocky Linux 9)“, „(Rocky Linux 10)“ |
 | 0.3 | Verwaltung → Benutzermenü → **Downloads** | zusätzlich 8 Linux-Einträge „LibreVDI Agent (unmanaged/managed) for … Linux desktops – <Distribution>“; keine „UDS“-Einträge |
 
@@ -86,6 +86,16 @@ Trennung“ braucht, nutzt die Windows-Richtlinie „Zeitlimit für getrennte Si
 |---|---|---|
 | D1 | Windows-Anleitung Teil 10, Tests 1–3 mit dem neuen Build | unverändert OK |
 | D2 | Windows-Client/-Agent aus dem neuen Build installieren (drüber) | unverändert OK |
+
+## E – Neu am 26.11. (Nachtrag)
+
+| # | Neu | Test |
+|---|---|---|
+| E1 | **Einrichtungsskript** `tools/setup-linux-desktop.sh` für Linux-Desktops (Block B) | statt Linux-Anleitung Teil 2 und 4 von Hand: `sudo ./setup-linux-desktop.sh --broker <domain> --dry-run`, dann ohne `--dry-run`, `sudo reboot`; danach L1–L7. Erwartung: keine Fehler, Zusammenfassung mit RDP-Konto für den Transport |
+| E2 | Spalte **VM-Energiezustand** bei *Zugewiesene Services* | Windows-Anleitung Teil 10, Test 9 |
+| E3 | **Abmelden / Nachricht senden** per Kommandozeile | Windows-Anleitung Teil 10, Tests 10 und 11 (auch mit der Linux-VM: `--pool "Linux persistent"`) |
+
+Selbsttest jetzt `83/83 ok` (statt 73/73).
 
 ## Rückmeldung
 

@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 ## [Unreleased]
 
 ### Added (Linux, session policy)
+- **Session control** for persistent desktops: log off a session or show a message in it
+  (REST actions `logoff`/`message`, command line `python -m librevdi_ext.session`); the broker now
+  learns the callback address of unmanaged agents, which upstream only knows for managed ones.
+- Assigned services: column **Machine power** (on/off/suspended/paused, live from Proxmox).
+- `tools/setup-linux-desktop.sh`: prepares a Ubuntu/Rocky desktop VM in one run (RDP server,
+  firewall, agent, GNOME idle logout).
 - **Linux client** packages `librevdi-client` for the supported desktops Ubuntu 24.04 / 26.04
   (.deb) and Rocky Linux 9 / 10 (.rpm), built in CI from the upstream launcher with builders
   derived from the upstream Debian 13 builder (`.github/workflows/linux-builds.yml`), rebranded
