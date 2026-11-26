@@ -47,17 +47,19 @@ def upstream_contract() -> list[Result]:
     from uds.core import jobs, types
     from uds.core.exceptions.services import MaxServicesReachedError
     from uds.core.managers import downloads_manager
+    from uds.core.managers.userservice_helpers import comms
     from uds.core.services.generics.fixed.service import FixedService
     from uds.core.types import errors
     from uds.core.types.rest import TableField
     from uds.core.util.config import GlobalConfig
     from uds.models import Provider, Service, ServicePool, ServicePoolGroup, Tag, UserService
-    from uds.REST.methods.user_services import UserServiceItem
+    from uds.REST.methods import actor_v3
+    from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
     from uds.services.Proxmox.proxmox.client import ProxmoxClient
     from uds.services.Proxmox.service_fixed import ProxmoxServiceFixed
     from uds.web.util import udsclients_info
 
-    from . import assigned_view, pool_maintenance, proxmox_persistent
+    from . import assigned_view, pool_maintenance, proxmox_persistent, session_control
 
     r: list[Result] = []
     # methods wrapped by LibreVDI (checked on the originals)
@@ -81,6 +83,19 @@ def upstream_contract() -> list[Result]:
     _check_params(r, pool_maintenance._original_is_in_maintenance, ["self"], "ServicePool.is_in_maintenance")
     _check_params(r, assigned_view._original_process_login, ["userservice", "username"], "actor Login.process_login")
     _check_params(r, assigned_view._original_login_action, ["self"], "actor Login.action")
+    _check_params(r, session_control._original_unmanaged_action, ["self"], "actor Unmanaged.action")
+    _check_params(
+        r,
+        comms._execute_actor_request,
+        ["userservice", "method", "data", "min_actor_version"],
+        "comms._execute_actor_request",
+    )
+    _check(r, callable(getattr(actor_v3, "get_list_of_ids", None)), "actor_v3.get_list_of_ids")
+    for name in ("set_comms_info", "get_comms_endpoint"):
+        _check(r, hasattr(UserService, name), f"UserService.{name}")
+    _check(
+        r, isinstance(getattr(AssignedUserService, "CUSTOM_METHODS", None), list), "AssignedUserService.CUSTOM_METHODS"
+    )
     # the idle logoff policy stands in for the OS manager: only these two methods may be used on it
     try:
         used = set(re.findall(r"osmanager\.(\w+)\(", inspect.getsource(assigned_view._original_login_action)))
@@ -105,7 +120,7 @@ def upstream_contract() -> list[Result]:
     _check(r, "maintain_on_error" in FixedService._gui_fields_template, "FixedService field maintain_on_error")
     for name in ("token", "pool", "machines", "use_snapshots"):
         _check(r, hasattr(ProxmoxServiceFixed, name), f"ProxmoxServiceFixed field {name}")
-    for name in ("get_vm_info", "start_vm", "shutdown_vm"):
+    for name in ("get_vm_info", "start_vm", "shutdown_vm", "list_vms"):
         _check(r, hasattr(ProxmoxClient, name), f"Proxmox API {name}")
 
     # models, fields and data structures
@@ -126,6 +141,10 @@ def upstream_contract() -> list[Result]:
         (ServicePoolGroup, "priority"),
     ):
         _check(r, has_field(model, field), f"model field {model.__name__}.{field}")
+    from uds.services.Proxmox.proxmox.types import VMInfo  # pylint: disable=import-outside-toplevel
+
+    vm_fields = {f.name for f in dataclasses.fields(VMInfo)}
+    _check(r, {"id", "status", "lock", "qmpstatus"} <= vm_fields, "Proxmox VMInfo(id, status, lock, qmpstatus)")
     item_fields = {f.name for f in dataclasses.fields(UserServiceItem)}
     for field in ("owner", "in_use", "source_host", "source_ip", "state"):
         _check(r, field in item_fields, f"UserServiceItem.{field}")
@@ -199,6 +218,13 @@ def librevdi_active() -> list[Result]:
     _check(r, AssignedUserService.odata_filter is assigned_view._odata_filter, "hook: hide removed machines")
     _check(r, Login.process_login is assigned_view._process_login, "hook: latest login updates 'Logged-in user'")
     _check(r, Login.action is assigned_view._login_action, "hook: no idle logoff for Wayland sessions")
+    from uds.REST.methods.actor_v3 import Unmanaged  # pylint: disable=import-outside-toplevel
+
+    from . import session_control  # pylint: disable=import-outside-toplevel
+
+    _check(r, Unmanaged.action is session_control._unmanaged_action, "hook: agent callback address (unmanaged)")
+    custom = {m.name for m in AssignedUserService.CUSTOM_METHODS}
+    _check(r, {"logoff", "message"} <= custom, "REST: assigned service actions logoff/message")
     _check(r, ServicePool.is_in_maintenance is pool_maintenance._is_in_maintenance, "hook: maintenance per pool")
     _check(
         r,

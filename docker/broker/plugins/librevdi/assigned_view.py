@@ -23,12 +23,13 @@ from uds.models import UserService
 from uds.REST.methods.actor_v3 import Login
 from uds.REST.methods.user_services import AssignedUserService, UserServiceItem
 
-from . import proxmox_persistent
+from . import proxmox_persistent, session_control, vm_power
 
 
 @dataclasses.dataclass
 class LibreVDIUserServiceItem(UserServiceItem):
     logged_user: str = ""
+    power_state: str = ""
 
 
 def logged_user(in_use: bool, props: dict[str, typing.Any]) -> str:
@@ -51,8 +52,11 @@ def _userservice_item(
     if is_cache:
         return val
     values = {f.name: getattr(val, f.name) for f in dataclasses.fields(val)}
+    power = vm_power.power_state(item)
     return LibreVDIUserServiceItem(
-        **values, logged_user=logged_user(item.in_use, props if props is not None else dict(item.properties))
+        **values,
+        logged_user=logged_user(item.in_use, props if props is not None else dict(item.properties)),
+        power_state=str(_(power)) if power else "",
     )
 
 
@@ -64,6 +68,7 @@ def _process_login(userservice: typing.Any, username: str) -> typing.Any:
     osmanager = _original_process_login(userservice, username)
     if username:
         userservice.properties["last_username"] = username
+    session_control.apply_comms(userservice)  # agent callback address for machines assigned after agent start
     # persistent pools: idle/disconnected session logoff, enforced by the agent via max_idle
     if osmanager is None and (seconds := proxmox_persistent.session_idle_seconds(userservice)):
         return proxmox_persistent.IdleLogoffPolicy(seconds)
@@ -115,6 +120,7 @@ def _get_table(self: AssignedUserService, parent: typing.Any) -> typing.Any:
     for index, field in enumerate(table.fields):
         if field.name == "owner":
             table.fields.insert(index + 1, TableField(name="logged_user", title=str(_("Logged-in user"))))
+            table.fields.insert(index + 2, TableField(name="power_state", title=str(_("Machine power"))))
             break
     return table
 

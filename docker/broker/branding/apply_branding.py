@@ -207,6 +207,12 @@ EXTRA_TRANSLATIONS: dict[str, dict[str, str]] = {
         "Logged-in user": "Angemeldeter Benutzer",
         "Last client (host)": "Letzter Client (Host)",
         "Last client (IP)": "Letzter Client (IP)",
+        "Machine power": "VM-Energiezustand",
+        "On": "Ein",
+        "Off": "Aus",
+        "Suspended": "Ruhezustand",
+        "Paused": "Angehalten",
+        "Unknown": "Unbekannt",
     },
 }
 

@@ -11,5 +11,6 @@ from . import pool_groups as pool_groups  # noqa: F401
 from . import pool_maintenance as pool_maintenance  # noqa: F401
 from . import power_policy as power_policy  # noqa: F401, E402
 from . import proxmox_persistent as proxmox_persistent  # noqa: F401
+from . import session_control as session_control  # noqa: F401
 
 power_policy.register()
