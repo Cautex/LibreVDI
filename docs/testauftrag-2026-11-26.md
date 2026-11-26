@@ -4,11 +4,12 @@ Stand: 26.11.2026 (Branch `claude/happy-allen-xenekt`). Was neu ist und hier get
 
 | # | Neu | Status vor dem Lab-Test |
 |---|---|---|
-| N1 | **LibreVDI Client für Linux** (`.deb` für Debian 12, Debian 13, Ubuntu 24.04), im Portal unter *Linux* | in der CI gebaut, in sauberen Containern installiert (alle Programme finden ihre Bibliotheken) |
-| N2 | **LibreVDI Agent für Linux** (`.deb`, unmanaged + managed) mit `librevdi-agent-configure`, Anleitung Ubuntu + xrdp | in der CI gebaut und installiert; Konfigurationsdatei gegen den echten Agent-Parser geprüft |
-| N3 | Dienst-Einstellung **„Log off inactive sessions after (minutes)“** | gegen die Actor-API geprüft (Broker sendet `max_idle`); Abmeldung selbst macht der Agent – noch nicht in einer echten Sitzung gesehen |
+| N1 | **LibreVDI Client für Linux** (`.deb` Ubuntu 24.04/26.04, `.rpm` Rocky 9/10), im Portal unter *Linux* | in der CI gebaut, in sauberen Containern installiert (alle Programme finden ihre Bibliotheken) |
+| N2 | **LibreVDI Agent für Linux** (`.deb`/`.rpm`, unmanaged + managed) mit `librevdi-agent-configure`, Anleitung Ubuntu/Rocky mit GNOME Remote Desktop bzw. xrdp | in der CI gebaut und installiert; Konfigurationsdatei gegen den echten Agent-Parser geprüft |
+| N3 | Dienst-Einstellung **„Log off inactive sessions after (minutes)“** | gegen die Actor-API geprüft (Broker sendet `max_idle`; für Wayland-Sitzungen bewusst nicht); Abmeldung selbst macht der Agent – noch nicht in einer echten Sitzung gesehen |
 
-Nicht enthalten (bewusst): `.rpm` (Fedora/openSUSE), AppImage, geklonte Linux-Pools.
+Zielsysteme: Ubuntu 24.04/26.04 Desktop, Rocky Linux 9/10 Desktop (Debian entfällt). Nicht
+enthalten: AppImage, geklonte Linux-Pools, H.264 auf Rocky.
 
 ---
 
@@ -21,48 +22,51 @@ docker compose build
 docker compose up -d
 GITHUB_TOKEN=<token> tools/fetch-windows-builds.sh   # holt jetzt Windows- UND Linux-Builds
 docker compose restart broker-web
-docker compose exec broker-web python -m librevdi_ext.selfcheck --quiet   # "selfcheck 71/71 ok"
+docker compose exec broker-web python -m librevdi_ext.selfcheck --quiet   # "selfcheck 73/73 ok"
 ```
 
-`fetch-windows-builds.sh` legt neben den `.exe` jetzt auch `librevdi-*.deb` in `downloads/` ab.
+`fetch-windows-builds.sh` legt neben den `.exe` jetzt auch `librevdi-*.deb` und `librevdi-*.rpm` in `downloads/` ab.
 
 | # | Prüfung | Erwartung |
 |---|---|---|
-| 0.1 | Selbsttest (letzte Zeile oben) | `71/71 ok` |
-| 0.2 | Portal → **LibreVDI Client** | Abschnitt Windows *und* Linux; Linux: „LibreVDI Client (Debian 12)“, „(Debian 13)“, „(Ubuntu 24.04)“ |
-| 0.3 | Verwaltung → Benutzermenü → **Downloads** | zusätzlich 6 Linux-Einträge „LibreVDI Agent (unmanaged/managed) for … Linux desktops – <Distribution>“; keine „UDS“-Einträge |
+| 0.1 | Selbsttest (letzte Zeile oben) | `73/73 ok` |
+| 0.2 | Portal → **LibreVDI Client** | Abschnitt Windows *und* Linux; Linux: „LibreVDI Client (Ubuntu 24.04)“, „(Ubuntu 26.04)“, „(Rocky Linux 9)“, „(Rocky Linux 10)“ |
+| 0.3 | Verwaltung → Benutzermenü → **Downloads** | zusätzlich 8 Linux-Einträge „LibreVDI Agent (unmanaged/managed) for … Linux desktops – <Distribution>“; keine „UDS“-Einträge |
 
 ## A – Linux-Client (N1)
 
-Auf einem Linux-Rechner (Notebook oder Test-VM mit Desktop) mit Debian 12, Debian 13 oder
-Ubuntu 24.04. Ziel ist der **bestehende Windows-Desktop** aus der Windows-Anleitung – so wird
-nur der Client getestet.
+Auf einem Linux-Rechner (Notebook oder Test-VM mit Desktop) mit Ubuntu 24.04/26.04 oder Rocky
+9/10 (Rocky: vorher `sudo dnf install -y epel-release`). Ziel ist der **bestehende
+Windows-Desktop** aus der Windows-Anleitung – so wird nur der Client getestet.
 
 | # | Schritt | Erwartung |
 |---|---|---|
-| A1 | Im Portal das passende Paket laden, `sudo apt install ./librevdi-client_<version>_amd64-<distribution>.deb` | ohne Fehler; Menüeintrag **LibreVDI Client** mit LibreVDI-Logo |
+| A1 | Im Portal das passende Paket laden, `sudo apt install ./librevdi-client_…deb` bzw. `sudo dnf install ./librevdi-client-…rpm` | ohne Fehler; Menüeintrag **LibreVDI Client** mit LibreVDI-Logo |
 | A2 | Im Portal als `max` → Kachel **Windows 11** | Browser fragt „LibreVDI Client öffnen?“ → Öffnen → RDP-Fenster, Windows-Anmeldung |
 | A3 | Arbeiten: Tastatur (Umlaute, `@`), Maus, Zwischenablage hin und zurück, Fenstergröße | funktioniert wie mit dem Windows-Client |
 | A4 | Ton (z. B. Video in der VM), falls Lautsprecher vorhanden | Ton kommt an (FreeRDP mit PulseAudio) |
 | A5 | Fenster schließen, erneut verbinden | Sitzung wird fortgesetzt |
-| A6 | `apt remove librevdi-client` | sauber entfernt |
+| A6 | `apt remove librevdi-client` bzw. `dnf remove librevdi-client` | sauber entfernt |
 
 ## B – Linux-Desktop mit Agent (N2)
 
-Nach [anleitung-linux-desktop.md](anleitung-linux-desktop.md) (Teil 1–4), dann deren Prüftabelle
-**L1–L6**. Wichtigste Punkte:
+Nach [anleitung-linux-desktop.md](anleitung-linux-desktop.md) (Teil 1–5), dann deren Prüftabelle
+**L1–L7**. Am wichtigsten ist Ubuntu Desktop mit GNOME Remote Desktop (24.04 oder 26.04); Rocky
+nach Zeit. Wichtigste Punkte:
 
 | # | Schritt | Erwartung |
 |---|---|---|
-| B1 | `sudo librevdi-agent-configure --broker <domain>` (Token wird abgefragt) | „LibreVDI Agent configured …“, „agent service (udsactor-unmanaged.service) restarted“ |
-| B2 | `systemctl status udsactor-unmanaged` | `active (running)` |
-| B3 | Verbinden (Windows- oder Linux-Client) | XFCE-Desktop; *Zugewiesene Services*: In Benutzung **Ja**, Angemeldeter Benutzer `max`, Actor-Version gefüllt |
-| B4 | In XFCE abmelden | In Benutzung **Nein**, Zuweisung bleibt |
+| B0 | RDP-Server nach Teil 2a/2b einrichten, Test ohne LibreVDI per RDP | GNOME-Anmeldebildschirm (GNOME Remote Desktop) bzw. Desktop (xrdp) |
+| B1 | `sudo librevdi-agent-configure --broker <domain>` (Token wird abgefragt) | „LibreVDI Agent configured …“, „agent service (…) restarted“ |
+| B2 | `systemctl status udsactor-unmanaged` (Ubuntu) bzw. `udsactor` (Rocky) | `active (running)` |
+| B3 | Verbinden (Windows- oder Linux-Client), GNOME-Anmeldung als `max` | GNOME-Desktop; *Zugewiesene Services*: In Benutzung **Ja**, Angemeldeter Benutzer `max`, Actor-Version gefüllt |
+| B4 | Im Menü abmelden | In Benutzung **Nein**, Zuweisung bleibt |
 
 ## C – Leerlauf-Abmeldung (N3)
 
-Windows-VM (und, wenn B klappt, auch die Linux-VM). Dienst → Reiter **Erweitert** →
-*Log off inactive sessions after (minutes)* = `5` → Speichern.
+Windows-VM. Dienst → Reiter **Erweitert** → *Log off inactive sessions after (minutes)* = `5` →
+Speichern. Linux: bei GNOME Remote Desktop (Wayland) greift diese Einstellung bewusst **nicht** –
+dort GNOME-Abmeldung nach Linux-Anleitung Teil 4.5 (Test L6); bei xrdp (Rocky 9) wie Windows.
 
 | # | Schritt | Erwartung |
 |---|---|---|

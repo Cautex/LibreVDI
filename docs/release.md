@@ -17,8 +17,8 @@ docker compose pull
 docker compose up -d --no-build  # ggf. --profile tunnel
 ```
 
-Die Windows-Installer (Client, Agent managed/unmanaged) und die Linux-Pakete (`.deb` für
-Debian 12, Debian 13, Ubuntu 24.04: Client, Agent managed/unmanaged) sind im Broker-Image
+Die Windows-Installer (Client, Agent managed/unmanaged) und die Linux-Pakete (Client, Agent
+managed/unmanaged; `.deb` für Ubuntu 24.04/26.04, `.rpm` für Rocky Linux 9/10) sind im Broker-Image
 enthalten und erscheinen ohne weiteren Schritt im Portal („Launcher“) und in der
 Admin-Oberfläche. Einzeln gibt es sie als Assets am GitHub-Release, mit `SHA256SUMS`
 (Vorabversionen: `-rc.1` heißt in Paketnamen `~rc.1`, damit `apt` sie vor `0.2.0` einsortiert):

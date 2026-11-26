@@ -7,9 +7,9 @@ Installers and packages placed here are offered by LibreVDI (copied when `broker
 | `LibreVDI-Client-Setup-*.exe` | portal button *Launcher* (`/uds/page/launcher-download`) | all users |
 | `LibreVDI-Agent-unmanaged-Setup-*.exe` | admin UI downloads (persistent machines) | administrators |
 | `LibreVDI-Agent-managed-Setup-*.exe` | admin UI downloads (floating pools) | administrators |
-| `librevdi-client_*_amd64-<distro>.deb` | portal *Launcher* page, section Linux (Debian 12, Debian 13, Ubuntu 24.04) | all users |
-| `librevdi-agent-unmanaged_*_amd64-<distro>.deb` | admin UI downloads (persistent Linux desktops) | administrators |
-| `librevdi-agent_*_amd64-<distro>.deb` | admin UI downloads (cloned Linux desktops) | administrators |
+| `librevdi-client_*_amd64-ubuntu2404/2604.deb`, `librevdi-client-*.x86_64-rocky9/10.rpm` | portal *Launcher* page, section Linux | all users |
+| `librevdi-agent-unmanaged…` (.deb / .rpm) | admin UI downloads (persistent Linux desktops) | administrators |
+| `librevdi-agent…` (.deb / .rpm) | admin UI downloads (cloned Linux desktops) | administrators |
 
 Fetch the latest CI builds directly on the Docker host:
 

@@ -54,7 +54,7 @@ in `.github/workflows/linux-builds.yml`).
 | FreeRDP 3.x (built from source in the upstream builder image) | Apache-2.0 | shared libraries in `/usr/share/udslauncher` | client |
 
 All other libraries (FFmpeg, OpenSSL, GTK/X11, libusb, PulseAudio, …) come from the distribution
-as package dependencies and are not shipped by LibreVDI.
+(Rocky Linux: FFmpeg from EPEL) as package dependencies and are not shipped by LibreVDI.
 
 ## Container images used by `compose.yaml`
 

@@ -41,7 +41,7 @@ docs/                   Entscheidung, ADRs, Installation, Upstream-Hinweise, Liz
 - [Hinweise zu Upstream](docs/upstream-notes.md)
 - [Testanleitung Stand Phase 1](docs/test-phase1.md)
 - [Anleitung: persistente Desktops mit fester Benutzerzuweisung](docs/anleitung-persistente-desktops.md)
-- [Anleitung: persistenter Linux-Desktop (Ubuntu + xrdp) und Linux-Client](docs/anleitung-linux-desktop.md)
+- [Anleitung: persistente Linux-Desktops (Ubuntu, Rocky Linux) und Linux-Client](docs/anleitung-linux-desktop.md)
 - [Testauftrag 26.11.2026: Linux-Client, Linux-Agent, Leerlauf-Abmeldung](docs/testauftrag-2026-11-26.md)
 - [Phase 2: persistenter Windows-Desktop (Details zur Windows-VM)](docs/test-phase2-windows.md)
 - [Tunnel (optional, pro Pool)](docs/tunnel.md)

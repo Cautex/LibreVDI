@@ -99,12 +99,17 @@ Ziel: die Horizon-Pooltypen „automatisiert, floating“ und „automatisiert, 
 
 ## Phase 4 – Linux
 
-- **Linux-Client** als `.deb` für Debian 12, Debian 13, Ubuntu 24.04 – **gebaut in CI, im Portal
-  angeboten** (Lab-Test offen). Offen: Fedora/openSUSE (`.rpm`), AppImage, später Desktop-App aus 2f
+- Zielsysteme: Desktops **Ubuntu 24.04/26.04** und **Rocky Linux 9/10** (Debian entfällt;
+  Server ohne GUI bleiben bei SSH)
+- **Linux-Client** als `.deb` (Ubuntu) und `.rpm` (Rocky) – **gebaut in CI, im Portal angeboten**
+  (Lab-Test offen). Offen: H.264 auf Rocky (nur mit nicht-freien Paketen), später Desktop-App aus 2f
 - **Linux-Agent** (managed + unmanaged, `.deb`, Admin-Downloads) mit `librevdi-agent-configure`
   und Anleitung für persistente Ubuntu-Desktops mit xrdp ([anleitung-linux-desktop.md](anleitung-linux-desktop.md))
-  – **gebaut in CI** (Lab-Test offen). Offen: `.rpm` (Upstream-Builder vorhanden, Umpaketierung
-  für RPM fehlt), geklonte Linux-Pools (Phase 3)
+  – **gebaut in CI** (Lab-Test offen); RDP-Server: GNOME Remote Desktop (Ubuntu, Rocky 10), xrdp
+  (Rocky 9). Offen: Leerlauf-Messung des Agenten unter Wayland (misst über X11; LibreVDI schickt
+  dort keine Leerlaufzeit, GNOME meldet selbst ab) – Lösung nur im Agent-Code bzw. upstream;
+  Einmal-Anmeldung bei GNOME Remote Desktop (heute RDP-Konto + GNOME-Anmeldung); geklonte
+  Linux-Pools (Phase 3)
 
 ## Phase 5 – GPU
 

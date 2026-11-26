@@ -6,14 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Versio
 ## [Unreleased]
 
 ### Added (Linux, session policy)
-- **Linux client** packages `librevdi-client` for Debian 12, Debian 13 and Ubuntu 24.04, built in
-  CI from the upstream launcher (`.github/workflows/linux-builds.yml`), rebranded and
-  install-tested in clean containers; offered in the portal's Linux section.
+- **Linux client** packages `librevdi-client` for the supported desktops Ubuntu 24.04 / 26.04
+  (.deb) and Rocky Linux 9 / 10 (.rpm), built in CI from the upstream launcher with builders
+  derived from the upstream Debian 13 builder (`.github/workflows/linux-builds.yml`), rebranded
+  and install-tested in clean containers; offered in the portal's Linux section.
 - **Linux agent** packages `librevdi-agent` / `librevdi-agent-unmanaged` (same distributions) as
   admin downloads, with the command line tool `librevdi-agent-configure` (token via stdin) and a
-  guide for persistent Ubuntu desktops with xrdp (`docs/anleitung-linux-desktop.md`).
+  guide for persistent Ubuntu/Rocky desktops with GNOME Remote Desktop or xrdp
+  (`docs/anleitung-linux-desktop.md`).
 - Persistent service setting **"Log off inactive sessions after (minutes)"**: the agent logs off
   sessions without input for that time, including disconnected ones (warning two minutes before).
+  Not sent for Wayland sessions, where the agent cannot measure idle time (GNOME's own idle
+  logout is used there).
 
 ### Added (Phase 2b)
 - Service type **"Proxmox Persistent Desktops (LibreVDI)"** (broker plugin): fixed user ↔ VM
